@@ -117,6 +117,8 @@ The system consists of two main components:
 
 📁 Folder Structure
 
+```
+
 traffic-management-system/
 │
 ├── client/                         # Frontend (User + Dashboard)
@@ -182,6 +184,8 @@ traffic-management-system/
 ├── .env
 ├── .gitignore
 └── package.json
+
+```
 
 ---
 
