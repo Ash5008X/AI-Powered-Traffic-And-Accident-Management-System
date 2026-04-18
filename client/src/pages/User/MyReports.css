@@ -1,0 +1,64 @@
+/* User MyReports — Stitch spec (Mobile-first + Desktop) */
+.myreports-page {
+  padding-bottom: 80px;
+  min-height: 100vh;
+}
+
+.myreports-content {
+  padding: 20px 16px;
+}
+
+.page-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+}
+
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-item {
+  animation: fadeIn 0.3s ease;
+}
+
+.report-timeline-wrap {
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-top: none;
+  margin-top: -2px;
+}
+
+/* ===== DESKTOP ===== */
+@media (min-width: 1024px) {
+  .myreports-page {
+    padding-bottom: 0;
+  }
+  .myreports-content {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 24px;
+    padding: 24px 32px;
+  }
+  .myreports-content > h1,
+  .myreports-content > p {
+    grid-column: 1 / -1;
+  }
+  .reports-list {
+    grid-column: 1;
+  }
+}
