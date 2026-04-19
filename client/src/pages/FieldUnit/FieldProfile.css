@@ -1,0 +1,32 @@
+/* Field Profile — Stitch spec (Mobile-first + Desktop) */
+.field-profile-page {
+  padding-bottom: 80px;
+  min-height: 100vh;
+}
+
+.field-profile-content {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Stats grid */
+.field-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ===== DESKTOP ===== */
+@media (min-width: 1024px) {
+  .field-profile-page {
+    padding-bottom: 0;
+  }
+  .field-profile-content {
+    max-width: 700px;
+    padding: 32px;
+  }
+}

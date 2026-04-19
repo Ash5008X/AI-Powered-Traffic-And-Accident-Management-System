@@ -1,0 +1,123 @@
+/* UserNavbar — Stitch spec */
+.user-navbar {
+  background: var(--bg-navbar);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.user-navbar .navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  width: 100%;
+}
+
+/* Brand — NEXUS white + TRAFFIC teal */
+.user-navbar .navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+.user-navbar .brand-nexus {
+  color: var(--color-text-primary);
+}
+.user-navbar .brand-traffic {
+  color: var(--color-accent);
+}
+
+/* Center nav links */
+.user-navbar .navbar-links {
+  display: flex;
+  gap: 24px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.user-navbar .nav-link {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 16px 0;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.user-navbar .nav-link:hover {
+  color: var(--color-text-secondary);
+}
+.user-navbar .nav-link.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* Right actions — bell + avatar */
+.user-navbar .navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.navbar-bell {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bell-icon {
+  font-size: 18px;
+}
+.bell-badge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  background: var(--color-critical);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.navbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #55e0d2, #2ec4b6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 800;
+  color: #003732;
+  cursor: pointer;
+}
+
+/* Mobile: hide nav links, show brand + bell + avatar */
+@media (max-width: 1023px) {
+  .user-navbar .navbar-links {
+    display: none;
+  }
+}
