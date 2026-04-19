@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FileText, BarChart3, Users } from 'lucide-react';
 import ReliefNavbar from '../../components/Navbar/ReliefNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import SkeletonLoader from '../../components/Common/SkeletonLoader';
@@ -61,7 +62,7 @@ export default function Reports() {
     <div className="relief-reports-page">
       <ReliefNavbar />
       <main className="relief-reports-content">
-        <h1 className="text-heading page-title">📑 REPORTS & ANALYTICS</h1>
+        <h1 className="text-heading page-title"><FileText size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> REPORTS & ANALYTICS</h1>
 
         <div className="reports-filters card">
           <div className="filter-row">
@@ -88,8 +89,8 @@ export default function Reports() {
           </div>
           <div className="filter-actions">
             <button className="btn btn-primary" onClick={handleFilter}>APPLY FILTER</button>
-            <button className="btn btn-ghost" onClick={handleExportPdf}>📄 EXPORT PDF</button>
-            <button className="btn btn-ghost" onClick={handleExportCsv}>📊 EXPORT CSV</button>
+            <button className="btn btn-ghost" onClick={handleExportPdf}><FileText size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> EXPORT PDF</button>
+            <button className="btn btn-ghost" onClick={handleExportCsv}><BarChart3 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> EXPORT CSV</button>
           </div>
         </div>
 
@@ -117,7 +118,7 @@ export default function Reports() {
           </section>
 
           <section className="reports-section">
-            <h2 className="section-title text-heading">👥 TEAM STATUS</h2>
+            <h2 className="section-title text-heading"><Users size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> TEAM STATUS</h2>
             <div className="team-grid">
               {team.map((u, i) => (
                 <div key={i} className="card team-card">

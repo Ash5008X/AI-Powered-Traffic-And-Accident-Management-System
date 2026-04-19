@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Radio } from 'lucide-react';
 import ReliefNavbar from '../../components/Navbar/ReliefNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import AlertCard from '../../components/AlertCard/AlertCard';
@@ -57,7 +58,7 @@ export default function ReliefAlerts() {
       <ReliefNavbar />
       <main className="relief-alerts-content">
         <div className="relief-alerts-header">
-          <h1 className="text-heading page-title">📡 ALERT MANAGEMENT</h1>
+          <h1 className="text-heading page-title"><Radio size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> ALERT MANAGEMENT</h1>
           <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ SEND ALERT</button>
         </div>
         {loading ? <SkeletonLoader lines={5} /> : alerts.length === 0 ? (
@@ -77,7 +78,7 @@ export default function ReliefAlerts() {
       {showCreate && (
         <div className="modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2 className="modal-title">📡 BROADCAST ALERT</h2>
+            <h2 className="modal-title"><Radio size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> BROADCAST ALERT</h2>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="form-group">
                 <label className="form-label">Type</label>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { Bell, MessageSquare, Siren, Radio } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { getCurrentISTTime } from '../../utils/timeUtils';
@@ -66,7 +67,7 @@ export default function FieldNavbar() {
           {/* Notification bell */}
           <div className="navbar-bell-wrapper" ref={notifRef}>
             <button className="navbar-bell" aria-label="Notifications" onClick={handleBellClick}>
-              <span className="bell-icon">🔔</span>
+              <span className="bell-icon"><Bell size={16} style={{ color: 'inherit' }} /></span>
               {unreadCount > 0 && <span className="bell-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>}
             </button>
 
@@ -89,7 +90,7 @@ export default function FieldNavbar() {
                         onClick={() => handleNotifClick(n)}
                       >
                         <span className="notif-item-icon">
-                          {n.type === 'message' ? '💬' : n.type === 'incident' ? '🚨' : '📡'}
+                          {n.type === 'message' ? <MessageSquare size={16} style={{ color: 'inherit' }} /> : n.type === 'incident' ? <Siren size={16} style={{ color: 'inherit' }} /> : <Radio size={16} style={{ color: 'inherit' }} />}
                         </span>
                         <div className="notif-item-body">
                           <span className="notif-item-text">{n.message}</span>

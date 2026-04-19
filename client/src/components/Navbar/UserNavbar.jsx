@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './UserNavbar.css';
 
@@ -20,7 +21,7 @@ export default function UserNavbar() {
         </div>
         <div className="navbar-actions">
           <button className="navbar-bell" aria-label="Notifications">
-            <span className="bell-icon">🔔</span>
+            <span className="bell-icon"><Bell size={16} style={{ color: 'inherit' }} /></span>
             <span className="bell-badge">3</span>
           </button>
           <div className="navbar-avatar" title={user?.name || 'User'}>

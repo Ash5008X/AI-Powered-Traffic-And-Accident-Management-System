@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BarChart3, AlertCircle, AlertTriangle, CheckCircle2, CalendarDays, Map, Siren } from 'lucide-react';
 import ReliefNavbar from '../../components/Navbar/ReliefNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import StatChip from '../../components/Common/StatChip';
@@ -66,23 +67,23 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-stats">
-          <StatChip label="Total Incidents" value={stats.total} color="var(--color-info)" icon="📊" />
-          <StatChip label="Active" value={stats.active} color="var(--color-critical)" icon="🔴" />
-          <StatChip label="Critical" value={stats.critical} color="var(--color-critical)" icon="⚠️" />
-          <StatChip label="Resolved" value={stats.resolved} color="var(--color-resolved)" icon="✅" />
-          <StatChip label="Today" value={stats.today} color="var(--color-medium)" icon="📅" />
+          <StatChip label="Total Incidents" value={stats.total} color="var(--color-info)" icon={<BarChart3 size={20} style={{ color: 'inherit' }} />} />
+          <StatChip label="Active" value={stats.active} color="var(--color-critical)" icon={<AlertCircle size={20} style={{ color: 'inherit' }} />} />
+          <StatChip label="Critical" value={stats.critical} color="var(--color-critical)" icon={<AlertTriangle size={20} style={{ color: 'inherit' }} />} />
+          <StatChip label="Resolved" value={stats.resolved} color="var(--color-resolved)" icon={<CheckCircle2 size={20} style={{ color: 'inherit' }} />} />
+          <StatChip label="Today" value={stats.today} color="var(--color-medium)" icon={<CalendarDays size={20} style={{ color: 'inherit' }} />} />
         </div>
 
         <div className="dashboard-grid">
           <section className="dashboard-section">
-            <h2 className="section-title text-heading">🗺️ HEATMAP</h2>
+            <h2 className="section-title text-heading"><Map size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> HEATMAP</h2>
             <div className="card" style={{ padding: 16 }}>
               {loading ? <SkeletonLoader lines={3} /> : <HeatmapGrid data={heatmap} />}
             </div>
           </section>
 
           <section className="dashboard-section">
-            <h2 className="section-title text-heading">🚨 RECENT INCIDENTS</h2>
+            <h2 className="section-title text-heading"><Siren size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> RECENT INCIDENTS</h2>
             {loading ? <SkeletonLoader lines={4} /> : recent.length === 0 ? (
               <div className="empty-state">No recent incidents</div>
             ) : (

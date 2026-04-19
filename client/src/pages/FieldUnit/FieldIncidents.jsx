@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Zap } from 'lucide-react';
 import FieldNavbar from '../../components/Navbar/FieldNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import IncidentCard from '../../components/IncidentCard/IncidentCard';
@@ -44,7 +45,7 @@ export default function FieldIncidents() {
     <div className="field-incidents-page">
       <FieldNavbar />
       <main className="field-incidents-content">
-        <h1 className="text-heading page-title">⚡ ALL INCIDENTS</h1>
+        <h1 className="text-heading page-title"><Zap size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> ALL INCIDENTS</h1>
         <p className="page-subtitle">Active incidents in the system</p>
         {loading ? <SkeletonLoader lines={5} /> : incidents.length === 0 ? (
           <div className="empty-state">No active incidents</div>

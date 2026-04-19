@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Bell, CheckCircle2, AlertCircle } from 'lucide-react';
 import UserNavbar from '../../components/Navbar/UserNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import AlertCard from '../../components/AlertCard/AlertCard';
@@ -34,7 +35,7 @@ export default function Alerts() {
     <div className="user-alerts-page">
       <UserNavbar />
       <main className="user-alerts-content">
-        <h1 className="text-heading page-title">🔔 ALERTS FEED</h1>
+        <h1 className="text-heading page-title"><Bell size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> ALERTS FEED</h1>
         <p className="page-subtitle">Real-time traffic alerts in your area</p>
         {loading ? <SkeletonLoader lines={5} /> : alerts.length === 0 ? (
           <div className="empty-state">No active alerts right now</div>
@@ -52,7 +53,7 @@ export default function Alerts() {
               <div><span className="form-label">Message</span><p>{selected.message}</p></div>
               <div><span className="form-label">Zone</span><p className="text-mono">{selected.zone || 'N/A'}</p></div>
               <div><span className="form-label">Severity</span><p>{selected.severity}</p></div>
-              <div><span className="form-label">Status</span><p>{selected.active ? '🟢 Active' : '🔴 Cancelled'}</p></div>
+              <div><span className="form-label">Status</span><p>{selected.active ? <><CheckCircle2 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> Active</> : <><AlertCircle size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> Cancelled</>}</p></div>
             </div>
             <button className="btn btn-ghost" onClick={() => setSelected(null)} style={{ marginTop: 16 }}>CLOSE</button>
           </div>

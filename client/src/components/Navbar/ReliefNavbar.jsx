@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { Bell, MessageSquare, Siren, Radio, User, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { getCurrentISTTime } from '../../utils/timeUtils';
@@ -77,7 +78,7 @@ export default function ReliefNavbar() {
           {/* Notification bell */}
           <div className="navbar-bell-wrapper" ref={notifRef}>
             <button className="navbar-bell" aria-label="Notifications" onClick={handleBellClick}>
-              <span className="bell-icon">🔔</span>
+              <span className="bell-icon"><Bell size={16} style={{ color: 'inherit' }} /></span>
               {unreadCount > 0 && <span className="bell-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>}
             </button>
 
@@ -100,7 +101,7 @@ export default function ReliefNavbar() {
                         onClick={() => handleNotifClick(n)}
                       >
                         <span className="notif-item-icon">
-                          {n.type === 'message' ? '💬' : n.type === 'incident' ? '🚨' : '📡'}
+                          {n.type === 'message' ? <MessageSquare size={16} style={{ color: 'inherit' }} /> : n.type === 'incident' ? <Siren size={16} style={{ color: 'inherit' }} /> : <Radio size={16} style={{ color: 'inherit' }} />}
                         </span>
                         <div className="notif-item-body">
                           <span className="notif-item-text">{n.message}</span>
@@ -141,14 +142,14 @@ export default function ReliefNavbar() {
                 </div>
                 <div className="profile-dropdown-divider" />
                 <button className="profile-dropdown-item" onClick={() => { navigate('/relief/profile'); setShowProfileMenu(false); }}>
-                  <span>👤</span> My Profile
+                  <span><User size={16} style={{ color: 'inherit' }} /></span> My Profile
                 </button>
                 <button className="profile-dropdown-item" onClick={() => { navigate('/relief/dashboard'); setShowProfileMenu(false); }}>
-                  <span>📊</span> Dashboard
+                  <span><BarChart3 size={16} style={{ color: 'inherit' }} /></span> Dashboard
                 </button>
                 <div className="profile-dropdown-divider" />
                 <button className="profile-dropdown-item danger" onClick={logout}>
-                  <span>🚪</span> Logout
+                  <span><LogOut size={16} style={{ color: 'inherit' }} /></span> Logout
                 </button>
               </div>
             )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Settings2, Lock } from 'lucide-react';
 import ReliefNavbar from '../../components/Navbar/ReliefNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import StatusToggle from '../../components/Common/StatusToggle';
@@ -40,7 +41,7 @@ export default function ReliefProfile() {
         </div>
 
         <div className="relief-profile-section card">
-          <h2 className="section-title text-heading">⚙️ PREFERENCES</h2>
+          <h2 className="section-title text-heading"><Settings2 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> PREFERENCES</h2>
           <div className="pref-item">
             <div>
               <span className="pref-label">Push Notifications</span>
@@ -65,7 +66,7 @@ export default function ReliefProfile() {
         </div>
 
         <div className="relief-profile-section card">
-          <h2 className="section-title text-heading">🔒 ACCOUNT</h2>
+          <h2 className="section-title text-heading"><Lock size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> ACCOUNT</h2>
           <button className="btn btn-danger relief-logout-btn" onClick={logout}>LOGOUT</button>
         </div>
       </main>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Siren, BellRing, AlertCircle, LayoutDashboard, AlertTriangle, CheckCircle2, Car, TrafficCone, Stethoscope, MapPin } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import UserNavbar from '../../components/Navbar/UserNavbar';
@@ -74,12 +75,12 @@ export default function Home() {
             <h1 className="text-heading user-greeting">WELCOME BACK, {user?.name?.toUpperCase()}</h1>
             <p className="user-greeting-sub">Stay informed. Stay safe.</p>
           </div>
-          <button id="report-accident-btn" className="btn btn-danger report-btn" onClick={() => setShowReportModal(true)}>🚨 REPORT ACCIDENT</button>
+          <button id="report-accident-btn" className="btn btn-danger report-btn" onClick={() => setShowReportModal(true)}><Siren size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> REPORT ACCIDENT</button>
         </header>
 
         <div className="user-home-grid">
           <section className="user-home-section">
-            <h2 className="section-title text-heading">📡 ACTIVE ALERTS</h2>
+            <h2 className="section-title text-heading"><BellRing size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> ACTIVE ALERTS</h2>
             {loading ? <SkeletonLoader lines={4} /> : alerts.length === 0 ? (
               <div className="empty-state">No active alerts in your area</div>
             ) : (
@@ -88,7 +89,7 @@ export default function Home() {
           </section>
 
           <section className="user-home-section">
-            <h2 className="section-title text-heading">🔴 NEARBY INCIDENTS</h2>
+            <h2 className="section-title text-heading"><AlertCircle size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> NEARBY INCIDENTS</h2>
             {loading ? <SkeletonLoader lines={4} /> : nearby.length === 0 ? (
               <div className="empty-state">No incidents nearby</div>
             ) : (
@@ -106,12 +107,12 @@ export default function Home() {
         </div>
 
         <section className="user-home-section stats-section">
-          <h2 className="section-title text-heading">📊 AREA OVERVIEW</h2>
+          <h2 className="section-title text-heading"><LayoutDashboard size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> AREA OVERVIEW</h2>
           <div className="stats-grid">
-            <StatChip label="Active Alerts" value={alerts.length} color="var(--color-medium)" icon="📡" />
-            <StatChip label="Nearby Incidents" value={nearby.length} color="var(--color-critical)" icon="🔴" />
-            <StatChip label="Critical" value={nearby.filter(n => n.severity === 'critical').length} color="var(--color-critical)" icon="⚠️" />
-            <StatChip label="Resolved Today" value={nearby.filter(n => n.status === 'resolved').length} color="var(--color-resolved)" icon="✅" />
+            <StatChip label="Active Alerts" value={alerts.length} color="var(--color-medium)" icon={<BellRing size={20} style={{ color: 'inherit' }} />} />
+            <StatChip label="Nearby Incidents" value={nearby.length} color="var(--color-critical)" icon={<AlertCircle size={20} style={{ color: 'inherit' }} />} />
+            <StatChip label="Critical" value={nearby.filter(n => n.severity === 'critical').length} color="var(--color-critical)" icon={<AlertTriangle size={20} style={{ color: 'inherit' }} />} />
+            <StatChip label="Resolved Today" value={nearby.filter(n => n.status === 'resolved').length} color="var(--color-resolved)" icon={<CheckCircle2 size={20} style={{ color: 'inherit' }} />} />
           </div>
         </section>
       </main>
@@ -119,15 +120,15 @@ export default function Home() {
       {showReportModal && (
         <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2 className="modal-title">🚨 REPORT AN INCIDENT</h2>
+            <h2 className="modal-title"><Siren size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> REPORT AN INCIDENT</h2>
             <form className="report-form" onSubmit={handleReport}>
               <div className="form-group">
                 <label className="form-label">Type</label>
                 <select className="select-field" value={reportForm.type} onChange={e => setReportForm(p => ({ ...p, type: e.target.value }))}>
-                  <option value="accident">🚗 Accident</option>
-                  <option value="congestion">🚧 Congestion</option>
-                  <option value="hazard">⚠️ Hazard</option>
-                  <option value="medical">🏥 Medical</option>
+                  <option value="accident">Accident</option>
+                  <option value="congestion">Congestion</option>
+                  <option value="hazard">Hazard</option>
+                  <option value="medical">Medical</option>
                 </select>
               </div>
               <div className="form-group">
@@ -149,7 +150,7 @@ export default function Home() {
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowReportModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-danger" disabled={submitting}>{submitting ? 'REPORTING...' : '🚨 REPORT'}</button>
+                <button type="submit" className="btn btn-danger" disabled={submitting}>{submitting ? 'REPORTING...' : <><Siren size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> REPORT</>}</button>
               </div>
             </form>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Settings2, Lock, Target } from 'lucide-react';
 import FieldNavbar from '../../components/Navbar/FieldNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import StatusToggle from '../../components/Common/StatusToggle';
@@ -49,12 +50,12 @@ export default function FieldProfile() {
         {unit && (
           <div className="field-stats-grid">
             <StatChip label="Status" value={unit.status?.replace('_', ' ').toUpperCase()} color={onDuty ? 'var(--color-active)' : 'var(--color-inactive)'} />
-            <StatChip label="Missions Today" value={unit.missionsToday} color="var(--color-info)" icon="🎯" />
+            <StatChip label="Missions Today" value={unit.missionsToday} color="var(--color-info)" icon={<Target size={20} style={{ color: 'inherit' }} />} />
           </div>
         )}
 
         <div className="profile-section card">
-          <h2 className="section-title text-heading">⚙️ DUTY STATUS</h2>
+          <h2 className="section-title text-heading"><Settings2 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> DUTY STATUS</h2>
           <div className="pref-item">
             <div>
               <span className="pref-label">On Duty / Off Duty</span>
@@ -65,7 +66,7 @@ export default function FieldProfile() {
         </div>
 
         <div className="profile-section card">
-          <h2 className="section-title text-heading">🔒 ACCOUNT</h2>
+          <h2 className="section-title text-heading"><Lock size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> ACCOUNT</h2>
           <button className="btn btn-danger logout-btn" onClick={logout}>LOGOUT</button>
         </div>
       </main>

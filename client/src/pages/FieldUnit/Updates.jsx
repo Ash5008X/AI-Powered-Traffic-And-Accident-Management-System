@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ScrollText, Stethoscope, AlertTriangle, Route, FileText, LifeBuoy, ClipboardList, MapPin } from 'lucide-react';
 import FieldNavbar from '../../components/Navbar/FieldNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import SkeletonLoader from '../../components/Common/SkeletonLoader';
@@ -29,13 +30,13 @@ export default function Updates() {
     } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
-  const actionIcons = { medical: '🏥', hazard: '⚠️', road: '🛣️', report: '📝', backup_request: '🆘', assignment_request: '📋' };
+  const actionIcons = { medical: <Stethoscope size={16} style={{ color: 'inherit' }} />, hazard: <AlertTriangle size={16} style={{ color: 'inherit' }} />, road: <Route size={16} style={{ color: 'inherit' }} />, report: <FileText size={16} style={{ color: 'inherit' }} />, backup_request: <LifeBuoy size={16} style={{ color: 'inherit' }} />, assignment_request: <ClipboardList size={16} style={{ color: 'inherit' }} /> };
 
   return (
     <div className="field-updates-page">
       <FieldNavbar />
       <main className="field-updates-content">
-        <h1 className="text-heading page-title">📨 MISSION UPDATES</h1>
+        <h1 className="text-heading page-title"><ScrollText size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> MISSION UPDATES</h1>
         <p className="page-subtitle">Activity log for current mission</p>
         {loading ? <SkeletonLoader lines={5} /> : updates.length === 0 ? (
           <div className="empty-state">No updates yet — complete actions during your mission to see them here</div>
@@ -43,7 +44,7 @@ export default function Updates() {
           <div className="updates-timeline">
             {updates.map((u, i) => (
               <div key={i} className="update-item card">
-                <span className="update-icon">{actionIcons[u.type || u.actionType] || '📌'}</span>
+                <span className="update-icon">{actionIcons[u.type || u.actionType] || <MapPin size={16} style={{ color: 'inherit' }} />}</span>
                 <div className="update-info">
                   <span className="update-type text-heading">{(u.type || u.actionType || 'action').replace('_', ' ').toUpperCase()}</span>
                   {u.details && <p className="update-details">{u.details}</p>}

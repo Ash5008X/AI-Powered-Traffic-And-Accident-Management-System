@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Target, CheckCircle2, MapPin, LifeBuoy, Stethoscope, AlertTriangle, Route, FileText, MessageSquare } from 'lucide-react';
 import FieldNavbar from '../../components/Navbar/FieldNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import ChatThread from '../../components/ChatThread/ChatThread';
@@ -130,14 +131,14 @@ export default function MyMission() {
       <main className="mission-content">
         <div className="mission-header">
           <div>
-            <h1 className="text-heading page-title">🎯 MY MISSION</h1>
+            <h1 className="text-heading page-title"><Target size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> MY MISSION</h1>
             {unit && <span className="text-mono" style={{ fontSize: 11, color: 'var(--color-info)' }}>{unit.unitId}</span>}
           </div>
         </div>
 
         {!mission ? (
           <div className="no-mission card">
-            <span style={{ fontSize: 48 }}>✅</span>
+            <CheckCircle2 size={48} style={{ color: 'inherit' }} />
             <h2 className="text-heading" style={{ fontSize: 18 }}>NO ACTIVE MISSION</h2>
             <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>Awaiting assignment from relief center</p>
           </div>
@@ -150,7 +151,7 @@ export default function MyMission() {
               </div>
               <h2 className="text-heading" style={{ fontSize: 18, marginBottom: 8 }}>{mission.type?.toUpperCase()} INCIDENT</h2>
               <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 12 }}>{mission.description}</p>
-              <div style={{ marginBottom: 12 }}><span className="text-mono" style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>📍 {mission.location?.address || 'Location pending'}</span></div>
+              <div style={{ marginBottom: 12 }}><span className="text-mono" style={{ fontSize: 11, color: 'var(--color-text-muted)' }}><MapPin size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> {mission.location?.address || 'Location pending'}</span></div>
               <TimelineBar status={mission.status} />
 
               {mission.status === 'en_route' && (
@@ -161,22 +162,22 @@ export default function MyMission() {
               )}
 
               <div className="mission-actions">
-                {['assigned', 'en_route'].includes(mission.status) && <button className="btn btn-primary" onClick={handleArrived}>📍 I HAVE ARRIVED</button>}
-                <button className="btn btn-warning" onClick={handleBackup}>🆘 REQUEST BACKUP</button>
+                {['assigned', 'en_route'].includes(mission.status) && <button className="btn btn-primary" onClick={handleArrived}><MapPin size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> I HAVE ARRIVED</button>}
+                <button className="btn btn-warning" onClick={handleBackup}><LifeBuoy size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> REQUEST BACKUP</button>
                 {mission.status === 'on_site' && (
                   <>
-                    <button className="btn btn-info" onClick={() => handleAction('medical')}>🏥 MEDICAL AID GIVEN</button>
-                    <button className="btn btn-warning" onClick={() => handleAction('hazard')}>⚠️ HAZARD CONTAINED</button>
-                    <button className="btn btn-ghost" onClick={() => handleAction('road')}>🛣️ ROAD CLEARED</button>
-                    <button className="btn btn-ghost" onClick={handleFileReport}>📝 FILE REPORT</button>
-                    <button className="btn btn-success" onClick={handleResolve}>✅ MARK INCIDENT RESOLVED</button>
+                    <button className="btn btn-info" onClick={() => handleAction('medical')}><Stethoscope size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> MEDICAL AID GIVEN</button>
+                    <button className="btn btn-warning" onClick={() => handleAction('hazard')}><AlertTriangle size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> HAZARD CONTAINED</button>
+                    <button className="btn btn-ghost" onClick={() => handleAction('road')}><Route size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> ROAD CLEARED</button>
+                    <button className="btn btn-ghost" onClick={handleFileReport}><FileText size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> FILE REPORT</button>
+                    <button className="btn btn-success" onClick={handleResolve}><CheckCircle2 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> MARK INCIDENT RESOLVED</button>
                   </>
                 )}
               </div>
             </div>
 
             <div className="mission-chat card">
-              <h3 className="text-heading" style={{ fontSize: 13, padding: '12px 16px 0' }}>💬 INCIDENT COMMS</h3>
+              <h3 className="text-heading" style={{ fontSize: 13, padding: '12px 16px 0' }}><MessageSquare size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> INCIDENT COMMS</h3>
               <ChatThread messages={chatMessages} onSend={handleSendChat} />
             </div>
           </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { TrafficCone } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { showToast } from '../../components/Common/Toast';
 import './Login.css';
@@ -29,7 +30,7 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <span className="auth-logo">🚦</span>
+          <span className="auth-logo"><TrafficCone size={48} style={{ color: 'inherit' }} /></span>
           <h1 className="text-heading auth-title">NEXUSTRAFFIC</h1>
           <p className="auth-subtitle">Traffic & Accident Management System</p>
         </div>

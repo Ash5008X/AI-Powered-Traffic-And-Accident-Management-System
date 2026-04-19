@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Siren, MessageSquare } from 'lucide-react';
 import ReliefNavbar from '../../components/Navbar/ReliefNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import IncidentCard from '../../components/IncidentCard/IncidentCard';
@@ -91,7 +92,7 @@ export default function ActiveIncidents() {
     <div className="active-incidents-page">
       <ReliefNavbar />
       <main className="active-incidents-content">
-        <h1 className="text-heading page-title">🚨 ACTIVE INCIDENTS</h1>
+        <h1 className="text-heading page-title"><Siren size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> ACTIVE INCIDENTS</h1>
         <div className="incident-tabs">
           {['pending', 'active', 'resolved', 'all'].map(t => (
             <button key={t} className={`btn ${tab === t ? 'btn-primary' : 'btn-ghost'} tab-btn`} onClick={() => setTab(t)}>
@@ -122,7 +123,7 @@ export default function ActiveIncidents() {
             <div className="incident-detail-col">
               <IncidentDetail incident={selected} onClose={() => setSelected(null)}>
                 <div style={{ width: '100%' }}>
-                  <h3 className="text-heading" style={{ fontSize: 13, marginBottom: 8 }}>💬 INCIDENT CHAT</h3>
+                  <h3 className="text-heading" style={{ fontSize: 13, marginBottom: 8 }}><MessageSquare size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> INCIDENT CHAT</h3>
                   <ChatThread messages={chatMessages} onSend={handleSendChat} />
                 </div>
               </IncidentDetail>

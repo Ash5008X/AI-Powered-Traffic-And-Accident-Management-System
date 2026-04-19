@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ClipboardList } from 'lucide-react';
 import UserNavbar from '../../components/Navbar/UserNavbar';
 import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import IncidentCard from '../../components/IncidentCard/IncidentCard';
@@ -37,7 +38,7 @@ export default function MyReports() {
     <div className="myreports-page">
       <UserNavbar />
       <main className="myreports-content">
-        <h1 className="text-heading page-title">📋 MY REPORTS</h1>
+        <h1 className="text-heading page-title"><ClipboardList size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'inherit' }} /> MY REPORTS</h1>
         <p className="page-subtitle">Track incidents you've reported</p>
         {loading ? <SkeletonLoader lines={5} /> : incidents.length === 0 ? (
           <div className="empty-state">You haven't reported any incidents yet</div>

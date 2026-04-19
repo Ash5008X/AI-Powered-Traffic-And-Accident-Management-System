@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { TrafficCone, User, BarChart3, Target } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { showToast } from '../../components/Common/Toast';
 import './Register.css';
@@ -31,7 +32,7 @@ export default function Register() {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <span className="auth-logo">🚦</span>
+          <span className="auth-logo"><TrafficCone size={48} style={{ color: 'inherit' }} /></span>
           <h1 className="text-heading auth-title">NEXUSTRAFFIC</h1>
           <p className="auth-subtitle">Create Your Account</p>
         </div>
@@ -51,7 +52,7 @@ export default function Register() {
           <div className="form-group">
             <label className="form-label">Role</label>
             <div className="role-radios">
-              {[{ value: 'user', label: 'User', icon: '👤' }, { value: 'relief_admin', label: 'Relief Admin', icon: '📊' }, { value: 'field_unit', label: 'Field Unit', icon: '🎯' }].map(r => (
+              {[{ value: 'user', label: 'User', icon: <User size={16} style={{ color: 'inherit' }} /> }, { value: 'relief_admin', label: 'Relief Admin', icon: <BarChart3 size={16} style={{ color: 'inherit' }} /> }, { value: 'field_unit', label: 'Field Unit', icon: <Target size={16} style={{ color: 'inherit' }} /> }].map(r => (
                 <label key={r.value} className={`role-radio ${role === r.value ? 'selected' : ''}`}>
                   <input type="radio" name="role" value={r.value} checked={role === r.value} onChange={e => setRole(e.target.value)} />
                   <span className="role-icon">{r.icon}</span>
