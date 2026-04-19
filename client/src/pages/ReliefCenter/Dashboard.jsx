@@ -59,11 +59,7 @@ export default function Dashboard() {
         <div className="dashboard-header">
           <div>
             <h1 className="text-heading dashboard-title">COMMAND CENTER</h1>
-            <div className="dashboard-meta">
-              <LiveBadge /> <span className="text-mono dashboard-clock">{clock}</span>
-            </div>
           </div>
-          <StatusToggle isOn={onDuty} onToggle={toggleDuty} />
         </div>
 
         <div className="dashboard-stats">
