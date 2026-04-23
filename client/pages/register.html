@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEXUSTRAFFIC | Register</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="../css/auth/register.css" />
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-label="Register form">
+      <div class="brand-block">
+        <span class="material-symbols-outlined brand-icon" aria-hidden="true">traffic</span>
+        <h1>NEXUSTRAFFIC</h1>
+        <p>Create Your Account</p>
+      </div>
+
+      <form class="auth-form" action="#" method="post">
+        <div class="grid-2">
+          <div class="field-wrap">
+            <label for="firstName">First Name *</label>
+            <input id="firstName" name="firstName" type="text" placeholder="First Name" required />
+          </div>
+          <div class="field-wrap">
+            <label for="lastName">Last Name</label>
+            <input id="lastName" name="lastName" type="text" placeholder="Last Name" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field-wrap">
+            <label for="age">Age</label>
+            <input id="age" name="age" type="number" min="1" placeholder="Age" />
+          </div>
+          <div class="field-wrap">
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender">
+              <option value="" selected disabled>Select Gender</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-wrap">
+          <label for="phone">Phone Number</label>
+          <input id="phone" name="phone" type="tel" placeholder="Phone Number" />
+        </div>
+
+        <div class="field-wrap">
+          <label for="email">Email *</label>
+          <input id="email" name="email" type="email" placeholder="Email" required />
+        </div>
+
+        <div class="field-wrap">
+          <label for="password">Password *</label>
+          <div class="input-with-action">
+            <input id="password" name="password" type="password" placeholder="Enter password" required />
+            <button class="inline-action" type="button" data-toggle="#password">
+              <span class="material-symbols-outlined">visibility</span>
+              Show
+            </button>
+          </div>
+        </div>
+
+        <div class="field-wrap">
+          <label for="confirmPassword">Confirm Password *</label>
+          <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm password" required />
+        </div>
+
+        <fieldset class="role-group">
+          <legend>Role *</legend>
+          <div class="role-options">
+            <label class="role-option active">
+              <input type="radio" name="role" value="user" checked />
+              <span class="material-symbols-outlined">person</span>
+              User
+            </label>
+            <label class="role-option">
+              <input type="radio" name="role" value="relief-admin" />
+              <span class="material-symbols-outlined">monitoring</span>
+              Relief Admin
+            </label>
+            <label class="role-option">
+              <input type="radio" name="role" value="field-unit" />
+              <span class="material-symbols-outlined">my_location</span>
+              Field Unit
+            </label>
+          </div>
+        </fieldset>
+
+        <button class="primary-btn" type="submit">Register</button>
+
+        <p class="switch-copy">
+          Already have an account?
+          <a href="../index.html">Login</a>
+        </p>
+      </form>
+    </section>
+  </main>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/register.js"></script>
+  <script>
+    document.querySelectorAll("[data-toggle]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = document.querySelector(button.dataset.toggle);
+        const isHidden = target.type === "password";
+        target.type = isHidden ? "text" : "password";
+        button.querySelector(".material-symbols-outlined").textContent = isHidden ? "visibility_off" : "visibility";
+        button.lastChild.textContent = isHidden ? " Hide" : " Show";
+      });
+    });
+
+    document.querySelectorAll(".role-option input").forEach((radio) => {
+      radio.addEventListener("change", () => {
+        document.querySelectorAll(".role-option").forEach((el) => el.classList.remove("active"));
+        radio.closest(".role-option").classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>

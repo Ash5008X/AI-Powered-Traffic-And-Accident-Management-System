@@ -1,18 +1,20 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const incidentRoutes = require('./routes/incidentRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const fieldUnitRoutes = require('./routes/fieldUnitRoutes');
-const reliefCenterModel = require('./models/reliefCenterModel');
+const reliefCenterModel = require('./modules/reliefCenterModel');
 const auth = require('./middleware/auth');
 
 const app = express();
+const clientPath = path.join(__dirname, '..', '..', 'client');
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: true,
   credentials: true
 }));
 app.use(express.json());
@@ -47,7 +49,7 @@ app.patch('/api/relief-centers/:id/status', auth, async (req, res) => {
 // User preferences
 app.patch('/api/users/preferences', auth, async (req, res) => {
   try {
-    const userModel = require('./models/userModel');
+    const userModel = require('./modules/userModel');
     const user = await userModel.updatePreferences(req.user.id, req.body);
     res.json(user);
   } catch (err) {
@@ -58,6 +60,12 @@ app.patch('/api/users/preferences', auth, async (req, res) => {
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.use(express.static(clientPath));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(clientPath, 'index.html'));
 });
 
 module.exports=app;

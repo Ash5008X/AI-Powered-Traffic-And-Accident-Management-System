@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEXUSTRAFFIC | Alerts Command Center</title>
+
+
+<!-- Bricolage Grotesque (display) + Figtree (body) + JetBrains Mono (data) -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Figtree:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Barlow+Condensed:wght@700;800&family=Fira+Code:wght@500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet"/>
+
+
+<link rel="stylesheet" href="../../css/user/alerts.css">
+
+</head>
+
+<body>
+
+<!-- ── NAVBAR ─────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <div class="brand">
+      <div class="brand-mark">
+        <span class="material-symbols-outlined">traffic</span>
+      </div>
+      <span class="brand-name">NexusTraffic</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#" class="nav-link">Home</a>
+      <a href="#" class="nav-link">My Reports</a>
+      <a href="#" class="nav-link active">Alerts</a>
+      <a href="#" class="nav-link">Profile</a>
+    </nav>
+  </div>
+
+  <div class="navbar-right">
+    <div class="search-wrap">
+      <span class="material-symbols-outlined search-icon-el">search</span>
+      <input class="search-input" type="text" placeholder="Search incidents…" />
+    </div>
+    <div class="divider-v"></div>
+    <button class="icon-btn">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="notif-dot"></span>
+    </button>
+    <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+      <span class="material-symbols-outlined" id="theme-icon">light_mode</span>
+    </button>
+    <div class="user-avatar">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEjevRVLuYByNoqxLQvD6KtQyp3_J1CH-konNTattLwHJoLNkSQ_YFugHsLE9d9YMBFRMuIYxNMMfJzpFftJH2zwOH7vHH0lgHyfp-3qhFMxb5wvio5dJiZjn6_OItZu4bH1M0XTq3edeHsAfMNyoxeNGTJyBH5fK8O2RXX6liykIRXzub652oYl0gSzPGAkCD9muhqRdmoZTsTWeF7tu_OE2IXVJR4nqDo7xCfXLpRvx_h3DkZzTXja64guQbs3M0yam5jRYn5zo" alt="User Avatar" />
+    </div>
+  </div>
+</nav>
+
+<!-- ── MAIN ───────────────────────────────────────── -->
+<main class="main-wrap">
+
+  <!-- LEFT COLUMN -->
+  <div class="left-col">
+
+    <!-- Filter chips -->
+    <div class="filter-bar">
+      <button class="chip active">All</button>
+      <button class="chip">Accident</button>
+      <button class="chip">Congestion</button>
+      <button class="chip">Route Update</button>
+      <button class="chip">System</button>
+      <button class="chip">All Clear</button>
+    </div>
+
+    <!-- ACTIVE ALERTS -->
+    <section>
+      <div class="section-header">
+        <span class="section-title">Active Alerts</span>
+        <div class="live-badge">
+          <div class="live-dot pulse-red"></div>
+          <span class="live-text">Live</span>
+          <span class="live-count" id="active-alerts-count">0</span>
+        </div>
+      </div>
+
+      <div class="alert-grid" id="active-alerts-list">
+        <!-- dynamic alerts here -->
+      </div>
+    </section>
+
+    <!-- EARLIER TODAY -->
+    <section>
+      <div class="section-header">
+        <span class="section-title" style="color:var(--text-muted);font-size:16px;">Earlier Today</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="past-alerts-list">
+        <!-- dynamic past alerts here -->
+      </div>
+    </section>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <!-- Incident Detail Panel Empty State -->
+    <div class="detail-panel" id="alert-detail-empty" style="display: flex; align-items: center; justify-content: center; min-height: 400px; color: var(--text-muted);">
+      Select an alert to view details
+    </div>
+
+    <!-- Incident Detail Panel -->
+    <div class="detail-panel" id="alert-detail-panel" style="display: none;">
+      <div class="detail-priority-badge" id="alert-detail-priority">Accident_High_Priority</div>
+
+      <div class="detail-ref" id="alert-detail-ref">Incident_Log_AX-9942</div>
+      <div class="detail-headline" id="alert-detail-title">Multiple Vehicle Pileup I-95N</div>
+      <div class="detail-coords">
+        <span class="material-symbols-outlined" style="font-size:14px;">location_on</span>
+        <span id="alert-detail-coords">40.7128° N, 74.0060° W</span>
+      </div>
+
+      <div class="detail-map">
+        <img alt="Incident Map View" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_Yuy26NJi9BAEMO3YjgJkVrrQQPEWDYIzu9DMyckWuDyemkckqrs2jfkx2NSZhVRTwi5_k5yb2WcjaM-wmHTYpIMJ0H5cKoUOX-6y5H5Xch_7fT-mefBV95csf_y_X5I6BDKF-OhrSdlh7KDOENiXhNy3Ag4vD3OzntBL8xErPpTwGFN2lYKkKByXW_FSpZew5zQA8MDudiXs5kCc-ntobFEPuvzO55ArpdX7qsZaj5g9Y5tsqCRiA_omhZAclFWZptox_Cdqh2c"/>
+      </div>
+
+      <div class="detail-body" id="alert-detail-desc">
+        Visual confirmation from drone unit DR-22. A white sedan and a heavy logistics vehicle collided near the median, causing a chain reaction. Emergency responders arrived at 14:19. Traffic is being diverted to secondary frontage roads.
+      </div>
+
+      <div class="detail-meta-grid">
+        <div class="detail-meta-row">
+          <span class="detail-meta-key">Detected</span>
+          <span class="detail-meta-val" id="alert-detail-time">14:12:05 UTC</span>
+        </div>
+        <div class="detail-meta-row">
+          <span class="detail-meta-key">Distance</span>
+          <span class="detail-meta-val" id="alert-detail-dist">1.2 km away</span>
+        </div>
+        <div class="detail-meta-row">
+          <span class="detail-meta-key">Severity</span>
+          <span class="detail-meta-val accent-orange" id="alert-detail-severity">High</span>
+        </div>
+      </div>
+
+      <button class="mark-read-btn" id="alert-detail-close-btn" style="background: var(--surface-3); color: var(--text);">
+        <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">close</span>
+        Close Panel
+      </button>
+    </div>
+
+    <!-- Alert Stats Today -->
+    <div class="stats-panel">
+      <div class="stats-panel-title">Alert Stats Today</div>
+
+      <div class="stats-grid">
+        <div class="stat-cell border-accident">
+          <span class="stat-num num-accident" id="stat-accident">00</span>
+          <span class="stat-label">Accidents</span>
+        </div>
+        <div class="stat-cell border-congestion">
+          <span class="stat-num num-congestion" id="stat-congestion">00</span>
+          <span class="stat-label">Congestions</span>
+        </div>
+        <div class="stat-cell border-route">
+          <span class="stat-num num-route" id="stat-route">00</span>
+          <span class="stat-label">Route Updates</span>
+        </div>
+        <div class="stat-cell border-system">
+          <span class="stat-num num-system" id="stat-system">00</span>
+          <span class="stat-label">System Events</span>
+        </div>
+      </div>
+
+      <div class="integrity-row">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">verified</span>
+        <span class="integrity-text">System_Integrity // 99.98%</span>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ── MOBILE NAV ─────────────────────────────────── -->
+<nav class="mobile-nav">
+  <button class="mob-btn">
+    <span class="material-symbols-outlined">home</span>
+    <span>Home</span>
+  </button>
+  <button class="mob-btn">
+    <span class="material-symbols-outlined">analytics</span>
+    <span>Reports</span>
+  </button>
+  <button class="mob-btn active">
+    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">notifications</span>
+    <span>Alerts</span>
+  </button>
+  <button class="mob-btn">
+    <span class="material-symbols-outlined">account_circle</span>
+    <span>Profile</span>
+  </button>
+</nav>
+
+<script src="../../js/app.js"></script>
+<script src="../../js/theme.js"></script>
+<script src="../../js/user/user_alerts.js"></script>
+
+</body>
+</html>

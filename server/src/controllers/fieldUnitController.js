@@ -1,5 +1,5 @@
-const fieldUnitModel = require('../models/fieldUnitModel');
-const incidentModel = require('../models/incidentModel');
+const fieldUnitModel = require('../modules/fieldUnitModel');
+const incidentModel = require('../modules/incidentModel');
 
 const fieldUnitController = {
   async getById(req, res) {

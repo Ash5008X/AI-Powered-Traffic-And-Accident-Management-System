@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEXUSTRAFFIC // FIELD_UNIT_DASHBOARD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Figtree:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Barlow+Condensed:wght@700;800&family=Fira+Code:wght@500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet"/>
+
+<link href="../../css/field_unit/dashboard.css" rel="stylesheet"/>
+</head>
+
+<body>
+
+<!-- ── NAVBAR ──────────────────────────────────── -->
+<nav class="navbar">
+  <div style="display:flex;align-items:center;gap:24px;flex:1;">
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-mark">
+        <span class="material-symbols-outlined">traffic</span>
+      </div>
+      <span class="brand-name">NEXUS<span>TRAFFIC</span></span>
+    </div>
+
+    <!-- Nav links -->
+    <nav class="nav-links">
+      <a class="nav-link active" href="#">My Mission</a>
+      <a class="nav-link" href="#">Incidents</a>
+      <a class="nav-link" href="#">Updates</a>
+      <a class="nav-link" href="#">Profile</a>
+    </nav>
+  </div>
+
+  <div class="navbar-right">
+    <!-- Status chip -->
+    <div class="status-chip">
+      <span class="material-symbols-outlined" style="font-size:14px;color:var(--teal);font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 20;">schedule</span>
+      <span class="status-chip-text">Available</span>
+    </div>
+
+    <!-- Sensors icon -->
+    <button class="icon-btn">
+      <span class="material-symbols-outlined">sensors</span>
+    </button>
+
+    <!-- Theme toggle -->
+    <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+      <span class="material-symbols-outlined" id="theme-icon">light_mode</span>
+    </button>
+
+    <!-- Avatar -->
+    <div class="user-avatar">
+      <img alt="Field Unit Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu2n7h8gSixH0Ze_-n7sxn3-MtOm1aGO64RXPk0sWcTqZaSMo_pnTxdUoeKxsjs79m43NQvZzjMfKUPRNli4ddMcMpZXyylDN01im0anZWJGreAjFieLBtbLf6qYDJsNrI3XpCnmdZkInRu8enBc7hTTHM1swoKPt40o69SXruKSo_NujfjG59l_LLoH6Xry7KBDFCw421H6ojsCmBt-zAht9Bbjmveh1ubeSrZPvEHgPGkJtVbWAklyCdGIFv5rFqQmHUYyhjH9c"/>
+    </div>
+  </div>
+</nav>
+
+<!-- ── MAIN GRID ───────────────────────────────── -->
+<div class="main-grid">
+
+  <!-- LEFT COLUMN: Mission Control -->
+  <aside class="col-left col-scroll">
+
+    <!-- Active Mission -->
+    <div class="mission-card pulse-critical">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span class="mission-label">Active Mission</span>
+        <span class="critical-badge">Critical</span>
+      </div>
+      <div class="mission-title">Multi-Vehicle Collision</div>
+      <div class="mission-ref">882-QX-44-DELTA</div>
+
+      <div class="mission-meta-grid">
+        <div>
+          <span class="mission-meta-key">Coordinates</span>
+          <span class="mission-meta-val">34.052 N<br/>118.243 W</span>
+        </div>
+        <div>
+          <span class="mission-meta-key">Est. Arrival</span>
+          <span class="mission-meta-val warn">4:32</span>
+        </div>
+      </div>
+
+      <button class="arrive-btn">✓ I Have Arrived</button>
+      <button class="backup-btn">⚠ Request Backup</button>
+    </div>
+
+    <!-- Stats Today -->
+    <div class="stats-card">
+      <div class="stats-card-title">My Stats Today</div>
+      <div class="stat-row">
+        <span class="stat-label">Missions Completed</span>
+        <span class="stat-val">04</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Avg Response Time</span>
+        <span class="stat-val">3:42<small> M</small></span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Distance Covered</span>
+        <span class="stat-val">12.4<small> KM</small></span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- CENTER COLUMN: Incident Briefing -->
+  <div class="col-center col-scroll">
+
+    <div class="briefing-card">
+      <div class="briefing-top-bar"></div>
+      <div class="briefing-body">
+
+        <!-- Header -->
+        <div style="position:relative;margin-bottom:14px;">
+          <div class="incident-ref">Incident_ID // 882-QX-44-DELTA</div>
+          <div class="incident-title">Multi-Vehicle Collision // I-10 Eastbound</div>
+          <span class="critical-badge" style="position:absolute;top:0;right:0;">Critical</span>
+        </div>
+
+        <!-- Dispatch alert -->
+        <div class="dispatch-alert">
+          <span class="material-symbols-outlined">emergency</span>
+          <span class="dispatch-alert-text">Critical — Relief Unit Dispatched</span>
+        </div>
+
+        <!-- Description -->
+        <p class="briefing-desc">
+          Multiple vehicles involved in high-speed impact. Possible structural damage to central median. Fire risk assessed as Moderate. Hazardous materials check negative.
+        </p>
+
+        <!-- Meta chips -->
+        <div class="meta-chips">
+          <div class="meta-chip">
+            <span class="meta-chip-key">Coordinates</span>
+            <span class="meta-chip-val">34.0522 N, 118.2437 W</span>
+          </div>
+          <div class="meta-chip">
+            <span class="meta-chip-key">Reported At</span>
+            <span class="meta-chip-val">14:32:08 UTC</span>
+          </div>
+        </div>
+
+        <!-- Resources -->
+        <div class="resources-label">Resources Needed</div>
+        <div class="resource-tags">
+          <span class="resource-tag">First Aid</span>
+          <span class="resource-tag">Fire Unit</span>
+          <span class="resource-tag">Tow Truck</span>
+          <span class="resource-tag">Police</span>
+        </div>
+
+        <!-- On-site actions -->
+        <div class="actions-panel">
+          <div class="actions-label">On-Site Actions</div>
+          <div class="actions-grid">
+            <button class="action-btn green">🚑 Medical Aid Given</button>
+            <button class="action-btn orange">🔥 Hazard Contained</button>
+            <button class="action-btn blue">🚗 Road Cleared</button>
+            <button class="action-btn purple">📋 File Report</button>
+          </div>
+        </div>
+
+        <!-- Resolve -->
+        <button class="resolve-btn">
+          <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">check_circle</span>
+          Mark Incident Resolved
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN: Comms & Logs -->
+  <section class="col-right" style="overflow:hidden;">
+
+    <!-- Comms header -->
+    <div class="comms-header">
+      <span class="comms-label">Comms // Admin_CMD</span>
+      <div class="live-indicator">
+        <div class="live-dot live-blink"></div>
+        <span class="live-text">Live</span>
+      </div>
+    </div>
+
+    <!-- Chat messages -->
+    <div class="chat-area">
+
+      <div class="msg-in">
+        <div class="bubble-in">Unit 992-AX, state your arrival status. Perimeter needs to be secured immediately.</div>
+        <span class="msg-meta-in">Admin // 14:38:12</span>
+      </div>
+
+      <div class="msg-out">
+        <div class="bubble-out">In position. Deploying flare perimeter now. Requesting heavy tow for the semi-truck.</div>
+        <span class="msg-meta-out">Me // 14:39:05</span>
+      </div>
+
+      <div class="msg-in">
+        <div class="bubble-in">Copy that. Tow unit ETA 8 mins. Proceed with caution, fuel leak reported at sector 4.</div>
+        <span class="msg-meta-in">Admin // 14:39:44</span>
+      </div>
+
+    </div>
+
+    <!-- Input bar -->
+    <div class="input-bar">
+      <div class="input-wrap">
+        <input class="chat-input" placeholder="Report status or request resources…" type="text"/>
+        <button class="send-btn">
+          <span class="material-symbols-outlined">send</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Completed Missions -->
+    <div class="completed-panel">
+      <div class="completed-label">Today's Completed Missions</div>
+
+      <div class="mission-row">
+        <div>
+          <span class="mission-row-ref">Stalled_Vehicle // Loop-610</span>
+          <span class="mission-row-name">Sector 9 Clear</span>
+        </div>
+        <span class="resolved-tag">Resolved</span>
+      </div>
+
+      <div class="mission-row">
+        <div>
+          <span class="mission-row-ref">Debris_Removal // HWY-290</span>
+          <span class="mission-row-name">Obstruction Handled</span>
+        </div>
+        <span class="resolved-tag">Resolved</span>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+<!-- ── FOOTER STATUS BAR ──────────────────────── -->
+<footer class="footer-bar">
+  <div class="footer-left">
+    <span class="footer-text purple">Unit_ID // 992-AX</span>
+    <span class="footer-text muted">Encryption_AES_256</span>
+  </div>
+  <div class="footer-right">
+    <span class="footer-text muted">GPS: 34.0522 N, 118.2437 W</span>
+    <div class="footer-status">
+      <div class="footer-dot"></div>
+      <span class="footer-text" style="color:var(--teal);">Status: Active_Staging</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../../js/app.js"></script>
+<script src="../../js/theme.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NexusTraffic — Field Profile</title>
+
+<!-- Bricolage Grotesque (display) + Figtree (body) + JetBrains Mono (data) -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Figtree:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet"/>
+
+<link href="../../css/field_unit/profile.css" rel="stylesheet"/>
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     NAVBAR
+     ══════════════════════════════════════════════════ -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <div class="brand">
+      <div class="brand-mark">
+        <span class="material-symbols-outlined">traffic</span>
+      </div>
+      <span class="brand-name">NexusTraffic</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#" class="nav-link">My Mission</a>
+      <a href="#" class="nav-link">Incidents</a>
+      <a href="#" class="nav-link">Updates</a>
+      <a href="#" class="nav-link active">Profile</a>
+    </nav>
+  </div>
+
+  <div class="navbar-right">
+    <button class="icon-btn" aria-label="Notifications">
+      <span class="material-symbols-outlined">notifications</span>
+    </button>
+    <button class="icon-btn" aria-label="Settings">
+      <span class="material-symbols-outlined">settings</span>
+    </button>
+    <div class="divider-v"></div>
+    <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+      <span class="material-symbols-outlined" id="theme-icon">light_mode</span>
+    </button>
+    <div class="user-avatar">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFDM6pTeFxlPXDNCP11rNJcwNGIZ7fheo47MoL_3gA_jwPdVVXQUv_e97ubFwSoMXkqM3ErIgud_BJwhs7ej6uYPxtBk-PxeusH0i63bEg96_X_7bEZ1Tf9PBOxVI8NsIntYrHX6JyWwRzcecWOF6j6QfejlnFrrU8Std_fyYG5H6hJc8ASjL5TQMldWGQYcur88_aTQZ0tyoM3SGEFUWYyvc2jE68XFaq3KbcsZtxyQpQ7K3F37xIWecWo-Ktc9iwX95zp-dwiKY" alt="Agent Profile" />
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     MAIN LAYOUT
+     ══════════════════════════════════════════════════ -->
+<main class="main-layout">
+
+  <!-- ── LEFT COLUMN ──────────────────────────────── -->
+  <section class="left-col">
+
+    <!-- Agent Identity Card -->
+    <div class="card identity-card">
+      <div class="identity-top">
+        <div>
+          <div class="identity-unit-id">UNIT_ID // 882-KILO</div>
+          <div class="identity-name">SGT. Elias Vance</div>
+          <div class="identity-status">
+            <span class="status-dot"></span>
+            <span class="identity-status-text">Status: Active Duty</span>
+          </div>
+        </div>
+        <div class="identity-photo">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBfBSV2t3bGqORM-4TZGc8ao28Wtuh1302HEMH0Zin0mfgaLukTVQU8STOAWE--F0qbmI-79SO50YUZyfahl2McSuUtcqfL0NhNRX4HNcUuHKxgyElQOM6ZTSuup4PzfJ5RstTbZY_046VlEQrXWB3wOaD0Pk9NeZam_Uz0GHWml8Br2FPif1oJ8SgEPoOuM4YcAbGiUSefdBtkAVIvhYbAkYAm5_ywDVWb8gsBKlr2CzCUiJ4MLCZe-ae3JCXtSZTZYxFlFyzyAc" alt="Profile" />
+        </div>
+      </div>
+      <div class="stat-chips">
+        <div class="stat-chip">
+          <span class="stat-chip-value" style="color: var(--accent-fg);">14</span>
+          <span class="stat-chip-label">Cleared</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-chip-value" style="color: var(--info-fg);">08</span>
+          <span class="stat-chip-label">Hours</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-chip-value" style="color: var(--success-fg);">98%</span>
+          <span class="stat-chip-label">Efficiency</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shift Logistics -->
+    <div>
+      <div class="section-title">Shift Logistics</div>
+      <div class="shift-table">
+        <div class="shift-row">
+          <span class="shift-row-label">Start Time</span>
+          <span class="shift-row-value">06:00 UTC</span>
+        </div>
+        <div class="shift-row">
+          <span class="shift-row-label">Zone Assignment</span>
+          <span class="shift-row-value">DOWNTOWN_SEC_4</span>
+        </div>
+        <div class="shift-row">
+          <span class="shift-row-label">Patrol Vehicle</span>
+          <span class="shift-row-value">NEXUS-INTERCEPTOR-04</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Response Availability Toggle -->
+    <div class="availability-card">
+      <div class="availability-left">
+        <span class="material-symbols-outlined">sensors</span>
+        <div>
+          <div class="availability-title">Response Availability</div>
+          <div class="availability-sub">Broadcasting presence to dispatch</div>
+        </div>
+      </div>
+      <label class="toggle-switch" aria-label="Toggle response availability">
+        <input type="checkbox" checked onchange="handleAvailability(this)" />
+        <div class="toggle-track">
+          <div class="toggle-thumb"></div>
+        </div>
+      </label>
+    </div>
+
+  </section>
+
+  <!-- ── RIGHT COLUMN ──────────────────────────────── -->
+  <section class="right-col">
+
+    <!-- Notification Toggles -->
+    <div>
+      <div class="section-title">Command Notifications</div>
+      <div class="toggle-list">
+        <div class="toggle-row">
+          <span class="toggle-row-label">Priority Incident Alerts</span>
+          <label class="toggle-switch" aria-label="Priority Incident Alerts">
+            <input type="checkbox" checked />
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-row-label">System Performance Updates</span>
+          <label class="toggle-switch" aria-label="System Performance Updates">
+            <input type="checkbox" checked />
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-row-label">Dispatch Voice Comms</span>
+          <label class="toggle-switch" aria-label="Dispatch Voice Comms">
+            <input type="checkbox" />
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weekly Response KPI Chart -->
+    <div>
+      <div class="section-title">Weekly Response KPI</div>
+      <div class="bar-chart">
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar-fill" style="height:75%"></div></div>
+          <span class="bar-label">Mon</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar-fill" style="height:88%"></div></div>
+          <span class="bar-label">Tue</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar-fill" style="height:50%"></div></div>
+          <span class="bar-label">Wed</span>
+        </div>
+        <div class="bar-col today">
+          <div class="bar-wrap"><div class="bar-fill" style="height:100%"></div></div>
+          <span class="bar-label">Thu</span>
+        </div>
+        <div class="bar-col inactive">
+          <div class="bar-wrap"><div class="bar-fill" style="height:31%"></div></div>
+          <span class="bar-label">Fri</span>
+        </div>
+        <div class="bar-col inactive">
+          <div class="bar-wrap"><div class="bar-fill" style="height:25%"></div></div>
+          <span class="bar-label">Sat</span>
+        </div>
+        <div class="bar-col inactive">
+          <div class="bar-wrap"><div class="bar-fill" style="height:19%"></div></div>
+          <span class="bar-label">Sun</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Integrity -->
+    <div>
+      <div class="section-title">Account Integrity</div>
+      <div class="settings-list">
+        <button class="settings-row">
+          <div class="settings-row-left">
+            <span class="material-symbols-outlined settings-row-icon">shield_lock</span>
+            <span class="settings-row-label">Security Credentials</span>
+          </div>
+          <span class="material-symbols-outlined settings-row-arrow">chevron_right</span>
+        </button>
+        <button class="settings-row">
+          <div class="settings-row-left">
+            <span class="material-symbols-outlined settings-row-icon">badge</span>
+            <span class="settings-row-label">Personal Information</span>
+          </div>
+          <span class="material-symbols-outlined settings-row-arrow">chevron_right</span>
+        </button>
+        <button class="settings-row">
+          <div class="settings-row-left">
+            <span class="material-symbols-outlined settings-row-icon">database</span>
+            <span class="settings-row-label">Data Logs &amp; Sync</span>
+          </div>
+          <span class="material-symbols-outlined settings-row-arrow">chevron_right</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Certifications -->
+    <div>
+      <div class="section-title">Certifications</div>
+      <div class="cert-list">
+        <div class="cert-card success">
+          <div class="cert-card-main">
+            <div class="cert-name">NEXUS_OS_LEVEL_4</div>
+            <div class="cert-expiry success">Expires: 2025-12-01</div>
+          </div>
+          <span class="material-symbols-outlined cert-icon success" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">verified</span>
+        </div>
+        <div class="cert-card info">
+          <div class="cert-card-main">
+            <div class="cert-name">URBAN_RESPONSE_SOP</div>
+            <div class="cert-expiry info">Expires: 2024-08-15</div>
+          </div>
+          <span class="material-symbols-outlined cert-icon info" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">verified</span>
+        </div>
+        <div class="cert-card critical" style="opacity: 0.75;">
+          <div class="cert-card-main">
+            <div class="cert-name">DRONE_PILOT_CLASS_A</div>
+            <div class="cert-expiry critical">Expired // Renewal Required</div>
+          </div>
+          <span class="material-symbols-outlined cert-icon critical" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">warning</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="danger-zone">
+      <div>
+        <div class="danger-zone-title">Protocol Termination</div>
+        <div class="danger-zone-sub">Warning: Terminating session will log out all active monitoring modules.</div>
+      </div>
+      <div class="danger-actions">
+        <button class="btn btn-ghost-danger">End Shift</button>
+        <button class="btn btn-danger">Sign Out</button>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════
+     FOOTER STATUS BAR
+     ══════════════════════════════════════════════════ -->
+<footer class="footer-bar">
+  <div class="footer-left">
+    <div class="footer-item">
+      <span class="footer-label">Unit:</span>
+      <span class="footer-value purple">882-KILO</span>
+    </div>
+    <div class="footer-item">
+      <span class="footer-label">Encryption:</span>
+      <span class="footer-value accent">AES-512_ACTIVE</span>
+    </div>
+    <div class="footer-item">
+      <span class="footer-label">GPS:</span>
+      <span class="footer-value purple">40.7128° N, 74.0060° W</span>
+    </div>
+  </div>
+  <div class="footer-right">
+    <div class="footer-status">
+      <span class="footer-status-dot"></span>
+      SYSTEM_STATUS // NOMINAL
+    </div>
+    <span class="sep">|</span>
+    <span class="footer-label">Uptime: 99.9%</span>
+  </div>
+</footer>
+
+<script src="../../js/app.js"></script>
+<script src="../../js/theme.js"></script>
+<script src="../../js/field_unit/field_profile.js"></script>
+
+</body>
+</html>
