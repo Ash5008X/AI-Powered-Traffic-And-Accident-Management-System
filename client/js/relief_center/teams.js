@@ -1,15 +1,32 @@
 /**
- * teams.js — Relief Center Team Management
- * Fetches teams, unassigned field units; handles create, delete, assign, view.
+ * teams.js
+ * 
+ * FIELD UNIT ORCHESTRATION & LOGISTICS ENGINE
+ * This module manages the lifecycle, deployment, and structural organization of 
+ * field units (First Responders, Medical Teams, Traffic Controllers).
+ * 
+ * CORE RESPONSIBILITIES:
+ * - Resource Allocation: Creation and decommissioning of tactical teams.
+ * - Personnel Registry: Management of unassigned field units and active rosters.
+ * - Spatial Deployment: Allocation of teams to specific jurisdictional sectors (A-F).
+ * - Real-time Status: Monitoring of total force strength and active deployments.
+ * - Interactive Assignment: Dynamic reallocation of personnel between units.
  */
 (() => {
+  // --- Secure Authentication & API Configuration ---
   const AUTH_KEY = 'nexustraffic_auth';
   const API = window.NEXUS_API_BASE || 'http://localhost:5000/api';
 
+  /**
+   * Secure Retrieval of the cryptographic session token.
+   */
   function getToken() {
     try { return JSON.parse(localStorage.getItem(AUTH_KEY))?.token; } catch { return null; }
   }
 
+  /**
+   * Standardized API dispatcher with integrated authorization headers.
+   */
   async function apiFetch(path, opts = {}) {
     const token = getToken();
     const res = await fetch(`${API}${path}`, {
@@ -24,29 +41,43 @@
     return res.json();
   }
 
-  // ─── State ──────────────────────────────────────────────────────────────────
-  let allTeams = [];
-  let unassignedUsers = [];
-  let selectedUnassigned = new Set();
-  let currentFilter = 'all';
-  let selectedSpec = 'medical';
-  let selectedZone = '';
+  /**
+   * --- Operational State Registry ---
+   */
+  let allTeams = [];               // Active tactical teams
+  let unassignedUsers = [];         // Personnel available for deployment
+  let selectedUnassigned = new Set(); // Staging for batch assignment
+  let currentFilter = 'all';        // UI scoping state
+  let selectedSpec = 'medical';     // Team creation capability state
+  let selectedZone = '';            // Team creation spatial state
 
+  /**
+   * Visual Identity Tokens (Aligned with NexusTRAFFIC Design System)
+   */
   const zoneColors = { A:'#FF3B30', B:'#FF6B35', C:'#FFB830', D:'#F97316', E:'#34C759', F:'#BF5AF2' };
   const avatarColors = ['#FF3B30','#FF6B35','#FFB830','#F97316','#34C759','#BF5AF2','#3A86FF','#FF2D55'];
 
+  /**
+   * Utility: Generates initials for personnel identifiers.
+   */
   function getInitials(name) {
     if (!name) return '??';
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
   }
 
+  /**
+   * Utility: Deterministic color generation based on personnel name.
+   */
   function randomColor(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     return avatarColors[Math.abs(hash) % avatarColors.length];
   }
 
-  // ─── Clock ──────────────────────────────────────────────────────────────────
+  /**
+   * --- Temporal Synchronization ---
+   * Maintains a mission-accurate UTC clock for operational coordination.
+   */
   function startClock() {
     const el = document.getElementById('clock');
     if (!el) return;
@@ -58,9 +89,12 @@
     tick(); setInterval(tick, 1000);
   }
 
-  // ─── Create Team Form ───────────────────────────────────────────────────────
+  /**
+   * --- Team Activation Interface ---
+   * Initializes controllers for team formation and sector allocation.
+   */
   function initCreateForm() {
-    // Spec buttons
+    // Capability selection (Specialization)
     document.querySelectorAll('.spec-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.spec-btn').forEach(b => {
@@ -73,7 +107,7 @@
       });
     });
 
-    // Zone buttons
+    // Spatial selection (Zone)
     document.querySelectorAll('.zone-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.zone-btn').forEach(b => {
@@ -86,7 +120,7 @@
       });
     });
 
-    // Create button
+    // Activation Trigger: Formal team creation
     document.getElementById('btn-create-team').addEventListener('click', async () => {
       const name = document.getElementById('create-team-name').value.trim();
       if (!name) return alert('Team name is required');
@@ -97,6 +131,7 @@
           method: 'POST',
           body: JSON.stringify({ name, zone: selectedZone, specialization: selectedSpec })
         });
+        // Clear form state upon success
         document.getElementById('create-team-name').value = '';
         selectedZone = '';
         document.querySelectorAll('.zone-btn').forEach(b => {
@@ -111,7 +146,10 @@
     });
   }
 
-  // ─── Filter Buttons ─────────────────────────────────────────────────────────
+  /**
+   * --- Filter Orchestration ---
+   * Initializes the UI scoping controllers for the team registry.
+   */
   function initFilters() {
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -126,11 +164,14 @@
       });
     });
 
-    // Search
+    // Real-time search indexing
     document.getElementById('search-teams').addEventListener('input', () => renderTeams());
   }
 
-  // ─── Render Teams List ──────────────────────────────────────────────────────
+  /**
+   * --- UI Rendering: Team Registry ---
+   * Generates high-fidelity visual representations of all active tactical units.
+   */
   function renderTeams() {
     const container = document.getElementById('teams-list');
     const searchTerm = document.getElementById('search-teams').value.toLowerCase();
@@ -161,7 +202,7 @@
       card.className = 'nt-card rounded border border-[var(--nt-card-border)] border-l-4 p-4 flex flex-col gap-4';
       card.style.borderLeftColor = zColor;
 
-      // Member avatars (up to 5)
+      // Roster Avatars: Visual personnel summary
       let avatarsHtml = '';
       const displayMembers = (team.memberDetails || []).slice(0, 5);
       displayMembers.forEach(m => {
@@ -197,10 +238,8 @@
           </div>
         </div>`;
 
-      // VIEW
+      // Event Handlers for team-specific actions
       card.querySelector('.btn-view').addEventListener('click', () => showTeamDetail(team._id));
-
-      // DELETE
       card.querySelector('.btn-delete').addEventListener('click', async () => {
         if (!confirm(`Delete team "${team.name}"?`)) return;
         try {
@@ -212,7 +251,7 @@
       container.appendChild(card);
     });
 
-    // ─── Unassigned Members ─────────────────────────────────────────────
+    // --- Personnel Inventory: Unassigned Units ---
     if (unassignedUsers.length > 0) {
       const section = document.createElement('div');
       section.className = 'mt-8';
@@ -251,11 +290,17 @@
     }
   }
 
+  /**
+   * Updates the UI badge for batched personnel selection.
+   */
   function updateSelectedCount() {
     document.getElementById('selected-count').textContent = `${selectedUnassigned.size} SELECTED`;
   }
 
-  // ─── Assign to Existing Team (Modal) ───────────────────────────────────────
+  /**
+   * --- Personnel Reallocation Interface ---
+   * Initializes the batch assignment system and target team picker.
+   */
   function initAssignButton() {
     document.getElementById('btn-assign-existing').addEventListener('click', () => {
       if (selectedUnassigned.size === 0) return alert('Select at least one field unit');
@@ -264,12 +309,15 @@
 
     document.getElementById('close-picker').addEventListener('click', closeTeamPicker);
     
-    // Close on overlay click
+    // Global backdrop listener for picker dismissal
     document.getElementById('team-picker-modal').addEventListener('click', (e) => {
       if (e.target.id === 'team-picker-modal') closeTeamPicker();
     });
   }
 
+  /**
+   * Renders the modal overlay for target team selection.
+   */
   function openTeamPicker() {
     const modal = document.getElementById('team-picker-modal');
     const container = document.getElementById('team-picker-container');
@@ -298,7 +346,7 @@
         </div>
       `;
 
-      // Hover color logic
+      // Interactive hover effects matching zone color system
       item.addEventListener('mouseenter', () => {
         item.style.backgroundColor = zColor;
         item.style.borderColor = zColor;
@@ -314,7 +362,7 @@
       list.appendChild(item);
     });
 
-    // Show modal
+    // Activation animations
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     main.style.filter = 'blur(4px)';
@@ -325,6 +373,9 @@
     }, 10);
   }
 
+  /**
+   * Deactivates the team picker modal.
+   */
   function closeTeamPicker() {
     const modal = document.getElementById('team-picker-modal');
     const container = document.getElementById('team-picker-container');
@@ -340,6 +391,9 @@
     }, 300);
   }
 
+  /**
+   * Commits the batch personnel assignment to a target tactical team.
+   */
   async function assignToTeam(teamId) {
     try {
       await apiFetch(`/teams/${teamId}/members`, {
@@ -352,15 +406,17 @@
       closeTeamPicker();
       await loadData();
       
-      // Optionally show details of the team we just added to
-      showTeamDetail(teamId);
+      showTeamDetail(teamId); // Shift focus to the updated unit
     } catch (err) {
       console.error('Assign error:', err);
       alert('Failed to assign members');
     }
   }
 
-  // ─── Team Detail (Right Panel) ──────────────────────────────────────────────
+  /**
+   * --- Master-Detail Controller ---
+   * Renders high-fidelity auditing data for a specific tactical unit.
+   */
   async function showTeamDetail(teamId) {
     const emptyEl = document.getElementById('detail-empty');
     const viewEl = document.getElementById('detail-view');
@@ -399,6 +455,7 @@
           </div>
           <button class="btn-remove-member text-[#FF3B30] hover:bg-[#FF3B30]/20 px-2 py-1 rounded text-xs outfit font-semibold transition-colors border border-transparent hover:border-[#FF3B30]/30">REMOVE</button>`;
 
+        // Personnel removal controller
         row.querySelector('.btn-remove-member').addEventListener('click', async () => {
           try {
             await apiFetch(`/teams/${teamId}/remove-member`, {
@@ -417,29 +474,29 @@
     }
   }
 
-  // ─── Stats ──────────────────────────────────────────────────────────────────
+  /**
+   * --- Global Telemetry: Force Strength ---
+   * Calculates and renders aggregate personnel and deployment metrics.
+   */
   function renderStats() {
     document.getElementById('stat-total-teams').textContent = allTeams.length;
 
-    // Total assigned members (unique IDs)
+    // Personnel Inventory Quantification
     const assignedSet = new Set();
     allTeams.forEach(t => (t.members || []).forEach(m => assignedSet.add(m.toString())));
-
-    // Total field units = assigned + unassigned
     const totalFieldUnits = assignedSet.size + unassignedUsers.length;
     
-    // "MEMBERS" stat should show the total number of field unit users
     document.getElementById('stat-members').textContent = String(totalFieldUnits).padStart(2, '0');
-
-    // "ON DUTY NOW" - for now using the same total or can be a subset if session tracking exists
-    // The user specifically asked for "registered as field units that are logged in"
-    // Since we don't have a "live" heartbeat yet, we'll show the total available field units
     document.getElementById('stat-on-duty').textContent = String(totalFieldUnits).padStart(2, '0');
 
+    // Global Footer Sync
     document.getElementById('footer-teams-active').textContent = `TEAMS_ACTIVE: ${allTeams.length}`;
   }
 
-  // ─── Main Data Load ─────────────────────────────────────────────────────────
+  /**
+   * --- Data Lifecycle Synchronizer ---
+   * Performs high-fidelity data retrieval for the full force structure.
+   */
   async function loadData() {
     try {
       const [teams, unassigned] = await Promise.all([
@@ -447,7 +504,7 @@
         apiFetch('/teams/unassigned')
       ]);
 
-      // For each team, fetch member details for avatars
+      // Hierarchical expansion of team member metadata for visual auditing
       const detailedTeams = await Promise.all(
         teams.map(t => apiFetch(`/teams/${t._id}`))
       );
@@ -462,7 +519,9 @@
     }
   }
 
-  // ─── Boot ───────────────────────────────────────────────────────────────────
+  /**
+   * --- Core Boot Sequence ---
+   */
   document.addEventListener('DOMContentLoaded', () => {
     startClock();
     initCreateForm();
@@ -471,3 +530,4 @@
     loadData();
   });
 })();
+

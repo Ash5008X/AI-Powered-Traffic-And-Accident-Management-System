@@ -1,21 +1,35 @@
 /**
  * relief_dashboard.js
- * - Fetches real incidents within 5km of admin's saved location
- * - Left column: live incident cards; click to reveal detail panel
- * - Center column: hidden until incident selected; shows real chat log
- * - Action buttons: EN ROUTE, RESOLVED, SEND UPDATE TO USER
- * - Chat send: posts message to incident AND creates user notification
- * - Right column: live stats + zone heatmap + Leaflet map
+ * 
+ * CORE COMMAND CENTER LOGIC
+ * This module orchestrates the primary operational interface for relief center administrators.
+ * It manages real-time incident tracking, tactical communication with users, and 
+ * situational awareness visualizations (maps, heatmaps, stats).
+ * 
+ * KEY ARCHITECTURE:
+ * - Event-Driven: Utilizes WebSockets for instant notification of new incidents or status changes.
+ * - Dynamic Scoping: Fetches and displays data specific to the administrator's designated relief zone.
+ * - Interaction Flow: Implements a selection-based master-detail workflow for high-efficiency management.
  */
 (() => {
+  // --- Network Configuration ---
   const API_BASE = window.NEXUS_API_BASE || 'http://localhost:5000/api';
   const AUTH_KEY = 'nexustraffic_auth';
 
-  // ─── Auth helpers ────────────────────────────────────────────────────────────
+  /**
+   * --- Authentication Helpers ---
+   * Securely retrieves the active session token from local storage.
+   */
   function getToken() {
     try { return JSON.parse(localStorage.getItem(AUTH_KEY))?.token; } catch { return null; }
   }
 
+  /**
+   * Standardized API wrapper for the relief center module.
+   * Automatically injects Bearer authorization and handles content-type mapping.
+   * @param {string} path - The relative API endpoint path.
+   * @param {Object} opts - Standard fetch options.
+   */
   async function apiFetch(path, opts = {}) {
     const token = getToken();
     const res = await fetch(`${API_BASE}${path}`, {
@@ -30,7 +44,10 @@
     return res.json();
   }
 
-  // ─── Clock ───────────────────────────────────────────────────────────────────
+  /**
+   * --- System Clock ---
+   * Maintains a high-visibility UTC clock for synchronized operational timing across all units.
+   */
   function startClock() {
     const el = document.getElementById('clock');
     if (!el) return;
@@ -43,17 +60,26 @@
     setInterval(tick, 1000);
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────────
+  /**
+   * --- UI Formatting Helpers ---
+   * maps internal severity keys to standardized design system hex codes.
+   */
   function severityColor(sev) {
     return { critical: '#FF3B30', high: '#FF6B35', medium: '#FFB830', low: '#34C759' }[sev] || '#888';
   }
 
+  /**
+   * Calculates the relative time difference for tactical awareness (e.g., '15M AGO').
+   */
   function timeAgo(dateStr) {
     const diff = Math.floor((Date.now() - new Date(dateStr)) / 60000);
     if (diff < 1) return 'JUST NOW';
     return `${diff}M AGO`;
   }
 
+  /**
+   * Generates a live stopwatch-style elapsed time string for active incidents.
+   */
   function elapsedTimer(dateStr) {
     const start = new Date(dateStr);
     const diff = Math.max(0, Math.floor((Date.now() - start) / 1000));
@@ -63,18 +89,24 @@
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
 
+  /**
+   * Formats ISO timestamps into localized 24-hour mission time.
+   */
   function formatTime(dateStr) {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
 
-  // ─── State ───────────────────────────────────────────────────────────────────
-  let selectedIncident = null;
-  let elapsedInterval = null;
-  let allActiveIncidents = [];
+  // --- Persistent Module State ---
+  let selectedIncident = null; // Current incident in the detail panel
+  let elapsedInterval = null;  // Reference for the active mission timer
+  let allActiveIncidents = []; // Local cache of filtered incidents
 
-  // ─── Detail panel show/hide ──────────────────────────────────────────────────
+  /**
+   * --- Layout Management ---
+   * Transitions the UI to reveal the master command panel.
+   */
   function showDetailPanel() {
     document.getElementById('detail-empty').style.display = 'none';
     const panel = document.getElementById('detail-panel');
@@ -82,6 +114,9 @@
     panel.style.flexDirection = 'column';
   }
 
+  /**
+   * Resets the UI to the primary standby state.
+   */
   function hideDetailPanel() {
     document.getElementById('detail-empty').style.display = 'flex';
     document.getElementById('detail-panel').style.display = 'none';
@@ -89,12 +124,18 @@
     if (elapsedInterval) clearInterval(elapsedInterval);
   }
 
-  // ─── Render incident cards ───────────────────────────────────────────────────
+
+  /**
+   * --- Feed Rendering ---
+   * Populates the left-column incident registry with high-visibility summary cards.
+   * @param {Array} incidents - Collection of incident objects within operational range.
+   */
   function renderIncidentList(incidents) {
     const container = document.querySelector('.col-left .flex-1.p-4');
     if (!container) return;
     container.innerHTML = '';
 
+    // Handle empty feed state
     if (incidents.length === 0) {
       container.innerHTML = `
         <div class="text-center py-12" style="color:var(--nt-dim)">
@@ -104,6 +145,7 @@
       return;
     }
 
+    // Map each incident to a tactical UI card
     incidents.forEach(inc => {
       const color = severityColor(inc.severity);
       const sev = (inc.severity || 'low').toUpperCase();
@@ -129,7 +171,7 @@
           <button class="btn-dismiss-card flex-1 outfit text-xs font-bold py-2 rounded">DISMISS</button>
         </div>`;
 
-      // VIEW = open detail
+      // --- Interaction: Quick View ---
       card.querySelector('.btn-view').addEventListener('click', e => {
         e.stopPropagation();
         openIncidentDetail(inc);
@@ -138,7 +180,7 @@
         card.style.outline = `1px solid ${color}`;
       });
 
-      // DISMISS
+      // --- Interaction: Quick Dismiss ---
       card.querySelector('.btn-dismiss-card').addEventListener('click', async e => {
         e.stopPropagation();
         try {
@@ -149,7 +191,7 @@
         } catch (err) { console.error('Dismiss failed:', err); }
       });
 
-      // Click card = also open detail
+      // Selection trigger for the entire card surface
       card.addEventListener('click', () => {
         openIncidentDetail(inc);
         document.querySelectorAll('.col-left .nt-card').forEach(c => c.style.outline = '');
@@ -160,14 +202,18 @@
     });
   }
 
-  // ─── Open detail panel for incident ─────────────────────────────────────────
+  /**
+   * --- Detailed SITREP Visualization ---
+   * Populates the center panel with full telemetry and command capabilities for a specific incident.
+   * @param {Object} inc - The specific incident document to engage with.
+   */
   function openIncidentDetail(inc) {
     selectedIncident = inc;
     showDetailPanel();
 
     const color = severityColor(inc.severity);
 
-    // Header
+    // Update command header identity and visual status markers
     document.getElementById('detail-header').style.borderLeftColor = color;
     const statusEl = document.getElementById('detail-status');
     statusEl.textContent = (inc.status || 'pending').toUpperCase().replace(/_/g, ' ');
@@ -186,26 +232,31 @@
     document.getElementById('detail-desc').textContent =
       inc.description || 'No description provided.';
 
-    // Elapsed timer
+    // --- Active Mission Timer ---
+    // Synchronize live elapsed counter to reflect operational urgency
     if (elapsedInterval) clearInterval(elapsedInterval);
     const elapsedEl = document.getElementById('detail-elapsed');
     const updateElapsed = () => { elapsedEl.textContent = elapsedTimer(inc.createdAt); };
     updateElapsed();
     elapsedInterval = setInterval(updateElapsed, 1000);
 
-    // Chat log
+    // --- Dynamic Content Rendering ---
     renderChatLog(inc.chat || []);
 
     // Wire action buttons
     wireActionButtons(inc);
 
-    // Footer coords
+    // Update global telemetry in footer to match selected incident
     const footerSpans = document.querySelectorAll('footer .flex .fira-code');
     if (footerSpans[0]) footerSpans[0].textContent = `LAT: ${inc.location?.lat?.toFixed(4) ?? '—'}`;
     if (footerSpans[1]) footerSpans[1].textContent = `LONG: ${inc.location?.lng?.toFixed(4) ?? '—'}`;
   }
 
-  // ─── Render chat log ─────────────────────────────────────────────────────────
+  /**
+   * --- Communication Interface ---
+   * Renders the chronological mission log / chat interface between admin and reporting user.
+   * @param {Array} chat - Array of chat message objects.
+   */
   function renderChatLog(chat) {
     const log = document.getElementById('chat-log');
     if (!log) return;
@@ -216,6 +267,7 @@
       return;
     }
 
+    // Map message objects to tactical chat bubbles
     chat.forEach(msg => {
       const isAdmin = msg.senderRole === 'relief_admin';
       const wrapper = document.createElement('div');
@@ -238,15 +290,20 @@
       log.appendChild(wrapper);
     });
 
-    // Scroll to bottom
+    // Auto-scroll to latest tactical update
     log.scrollTop = log.scrollHeight;
   }
 
+  /**
+   * Standard HTML escaping to prevent XSS in chat.
+   */
   function escHtml(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // Append a single chat bubble optimistically
+  /**
+   * Optimistically appends a chat bubble for perceived performance.
+   */
   function appendChatBubble(message, role) {
     const log = document.getElementById('chat-log');
     if (!log) return;
@@ -265,7 +322,11 @@
     log.scrollTop = log.scrollHeight;
   }
 
-  // ─── Wire action buttons ─────────────────────────────────────────────────────
+
+  /**
+   * --- Command & Control Events ---
+   * Orchestrates the event listeners for transition and communication actions.
+   */
   function wireActionButtons(inc) {
     const btnEnRoute = document.getElementById('btn-en-route');
     const btnResolve = document.getElementById('btn-resolve');
@@ -273,47 +334,49 @@
     const chatSend   = document.getElementById('chat-send');
     const chatInput  = document.getElementById('chat-input');
 
-    // Clone to remove old listeners
+    // Clean legacy listeners via node cloning to prevent memory leaks/double-execution
     [btnEnRoute, btnResolve, btnSend, chatSend].forEach(btn => {
       if (!btn) return;
       const clone = btn.cloneNode(true);
       btn.parentNode.replaceChild(clone, btn);
     });
 
-    // Re-grab after clone
+    // --- State Transition: En Route ---
     document.getElementById('btn-en-route')?.addEventListener('click', async () => {
       await updateStatus(inc._id, 'en_route', "Your request is acknowledged and a team is enrouted to your position");
     });
 
+    // --- State Transition: Resolved ---
     document.getElementById('btn-resolve')?.addEventListener('click', async () => {
       await updateStatus(inc._id, 'resolved', "Your request has been resolved");
     });
 
+    // --- State Transition: Dismissed ---
     document.getElementById('btn-dismiss')?.addEventListener('click', async () => {
       await updateStatus(inc._id, 'dismissed', "Your request has been dismissed");
     });
 
-    // Chat send button
+    // --- Manual Communication Dispatch ---
     document.getElementById('chat-send')?.addEventListener('click', () => sendMessage(inc));
 
-    // Enter key
+    // Support keyboard submission for efficient command flow
     const newInput = document.getElementById('chat-input');
     newInput?.addEventListener('keydown', e => {
       if (e.key === 'Enter') sendMessage(inc);
     });
   }
 
+  /**
+   * Executes an incident status change and optionally notifies the reporter.
+   */
   async function updateStatus(incidentId, status, notifMessage = null) {
     try {
       // 1. Update the actual incident status
       const path = status === 'dismissed' ? `/incidents/${incidentId}/dismiss` : `/incidents/${incidentId}/status`;
-      const method = status === 'dismissed' ? 'DELETE' : 'PATCH'; // Check if DELETE or PATCH is used for dismiss
-
-      // Actually, looking at incidentController.js:169, it's not specified in routes yet?
-      // Wait, let's check incidentRoutes.js.
       
+      // Perform state update in the incidents registry
       await apiFetch(path, {
-        method: status === 'dismissed' ? 'PATCH' : 'PATCH',
+        method: 'PATCH',
         body: JSON.stringify({ status })
       });
 
@@ -327,28 +390,29 @@
             skipChat: true // Automated updates don't go to chat log
           })
         });
-        // We do NOT appendChatBubble here as requested
       }
 
-      // Refresh panel and list
+      // Refresh total dashboard state to reflect transitions
       await loadDashboard();
     } catch (err) {
       console.error('Status update failed:', err);
     }
   }
 
+
+  /**
+   * Dispatches a custom tactical message to the reporter and logs it in the SITREP.
+   */
   async function sendMessage(inc) {
     const input = document.getElementById('chat-input');
     const message = input?.value?.trim();
     if (!message || !inc) return;
 
     input.value = '';
-    appendChatBubble(message, 'relief_admin'); // optimistic
+    appendChatBubble(message, 'relief_admin'); // Optimistic UI update
 
     try {
-      // POST to /api/alerts/incident-notify which:
-      // 1) Saves chat message on incident
-      // 2) Creates targeted alert for the reporting user
+      // Dispatch communication and create targeted user notification
       await apiFetch('/alerts/incident-notify', {
         method: 'POST',
         body: JSON.stringify({ incidentId: String(inc._id), message })
@@ -358,7 +422,10 @@
     }
   }
 
-  // ─── Update stats chips ──────────────────────────────────────────────────────
+  /**
+   * --- Real-Time Performance Stats ---
+   * Updates the high-level KPI chips on the right-hand panel.
+   */
   function renderStats(stats) {
     const chips = document.querySelectorAll('.stat-chip span.barlow-800');
     if (chips.length >= 3) {
@@ -371,11 +438,15 @@
         chips[2].textContent = 'N/A';
       }
     }
+    // Update the live queue count badge in the sidebar
     const badge = document.querySelector('.queue-header .bg-\\[\\#FF3B30\\]');
     if (badge) badge.textContent = `${stats.activeCount ?? 0} NEW`;
   }
 
-  // ─── Zone heatmap ────────────────────────────────────────────────────────────
+  /**
+   * --- Regional Heatmap Matrix ---
+   * Visualizes incident density across the 6 primary response sectors (Zones A-F).
+   */
   function renderZoneHeatmap(zoneBreakdown) {
     const zones = ['A', 'B', 'C', 'D', 'E', 'F'];
     const ZONE_COLORS_MAP = ['#FF3B30', '#FFB830', '#F97316', '#3A86FF', '#34C759', '#AF52DE'];
@@ -393,8 +464,8 @@
 
       const color = ZONE_COLORS_MAP[idx];
       
-      // Apply zone-specific color regardless of count
-      cell.style.backgroundColor = color + '15'; // Very subtle tint
+      // Dynamic thematic styling for the heatmap matrix
+      cell.style.backgroundColor = color + '15'; 
       cell.style.borderColor = color + '40';
       if (labelEl) labelEl.style.color = color;
       if (countEl) {
@@ -404,7 +475,11 @@
     });
   }
 
-  // ─── Leaflet map ─────────────────────────────────────────────────────────────
+
+  /**
+   * --- Tactical Leaflet Map Integration ---
+   * Initializes and maintains the geographical situational awareness map.
+   */
   let mapInitialized = false;
   function initMap(centerLat, centerLng) {
     if (mapInitialized) return;
@@ -414,6 +489,7 @@
     if (!mapDiv) return;
     mapDiv.innerHTML = '<div id="leaflet-map" style="width:100%;height:100%;border-radius:inherit;z-index:0;"></div>';
 
+    // Dependency injection: Load Leaflet CSS if not present
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css';
@@ -422,6 +498,7 @@
       document.head.appendChild(link);
     }
 
+    // Async Leaflet script loader
     const loadLeaflet = () => new Promise(resolve => {
       if (window.L) return resolve();
       const s = document.createElement('script');
@@ -432,29 +509,32 @@
 
     loadLeaflet().then(() => {
       const L = window.L;
+      // Initialize map instance focused on the relief center coordinates
       const map = L.map('leaflet-map', {
         center: [centerLat, centerLng],
         zoom: 13,
         zoomControl: false,
         attributionControl: false
       });
-      window.leafletMap = map; // Store for updates
+      window.leafletMap = map;
 
+      // Apply tactical dark theme tiles
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-      // 15km radius circle
+      // --- Range Awareness Overlay ---
+      // 15km operational radius boundary
       L.circle([centerLat, centerLng], {
         radius: 15000,
         color: '#F97316', weight: 1,
         fill: true, fillColor: '#F97316', fillOpacity: 0.03
       }).addTo(map);
 
-      // Center marker
+      // Center of operations marker
       L.circleMarker([centerLat, centerLng], {
         radius: 5, color: '#FFF', fillColor: '#F97316', fillOpacity: 1, weight: 2
       }).addTo(map);
 
-      // 6 zone sector lines
+      // --- Sector Overlay (Radial Zones) ---
       const ZONE_COLORS_MAP = ['#FF3B30','#FFB830','#F97316','#3A86FF','#34C759','#AF52DE'];
       const ZONE_LABELS = ['A','B','C','D','E','F'];
       const sectorRadius = 0.135; // Approx degrees for 15km
@@ -464,10 +544,12 @@
         const endLat = centerLat + sectorRadius * Math.cos(bearing * Math.PI / 180);
         const endLng = centerLng + sectorRadius * Math.sin(bearing * Math.PI / 180);
 
+        // Render tactical sector lines
         L.polyline([[centerLat, centerLng], [endLat, endLng]], {
           color: ZONE_COLORS_MAP[i], weight: 1, opacity: 0.3, dashArray: '5, 5'
         }).addTo(map);
 
+        // Anchor zone identity labels in sectors
         const midBearing = bearing + 30;
         const midLat = centerLat + sectorRadius * 0.4 * Math.cos(midBearing * Math.PI / 180);
         const midLng = centerLng + sectorRadius * 0.4 * Math.sin(midBearing * Math.PI / 180);
@@ -484,16 +566,22 @@
     });
   }
 
+
+  /**
+   * --- Real-Time Tactical Marker Management ---
+   * Dynamically places and updates incident indicators on the map based on severity.
+   */
   let incidentMarkers = [];
   function updateMapMarkers() {
     if (!window.leafletMap || !window.L) return;
     const L = window.L;
     const map = window.leafletMap;
 
-    // Clear old markers
+    // Flush legacy tactical markers
     incidentMarkers.forEach(m => map.removeLayer(m));
     incidentMarkers = [];
 
+    // Map all active mission coordinates to map markers
     allActiveIncidents.forEach(inc => {
       if (!inc.location?.lat || !inc.location?.lng) return;
       const color = severityColor(inc.severity);
@@ -506,6 +594,7 @@
         weight: 2
       }).addTo(map);
 
+      // Contextual tooltips for rapid identification
       marker.bindTooltip(`${inc.type?.toUpperCase()} - ${inc.severity.toUpperCase()}`, {
         direction: 'top',
         className: 'nt-map-tooltip'
@@ -515,41 +604,48 @@
     });
   }
 
-  // ─── Main data load ──────────────────────────────────────────────────────────
+  /**
+   * --- Command Center Bootstrap ---
+   * Orchestrates the primary data synchronization for the entire dashboard module.
+   */
   async function loadDashboard() {
     try {
+      // Synchronize overall dashboard statistics and incidents
       const stats = await apiFetch('/incidents/dashboard-stats');
       allActiveIncidents = stats.activeIncidents || [];
 
+      // Update functional UI components
       renderStats(stats);
       renderZoneHeatmap(stats.zoneBreakdown);
       renderIncidentList(allActiveIncidents);
 
-      // If an incident was previously selected, re-open it (refreshed)
+      // Persist selection across tactical refreshes
       if (selectedIncident) {
         const updated = allActiveIncidents.find(i => String(i._id) === String(selectedIncident._id));
         if (updated) openIncidentDetail(updated);
         else hideDetailPanel();
       }
 
+      // Sync geographical visualizations
       if (!mapInitialized) {
         initMap(stats.centerLat, stats.centerLng);
       } else {
         updateMapMarkers();
       }
 
-      // Footer
+      // Synchronize footer telemetry
       const footerSpans = document.querySelectorAll('footer .flex .fira-code');
       if (footerSpans[0]) footerSpans[0].textContent = `LAT: ${stats.centerLat.toFixed(4)}`;
       if (footerSpans[1]) footerSpans[1].textContent = `LONG: ${stats.centerLng.toFixed(4)}`;
 
-      // Load recent alerts
+      // Sync recent communication history
       await loadRecentAlerts();
 
     } catch (err) {
       console.error('Dashboard load error:', err);
     }
   }
+
 
   // ─── Recent Alerts ──────────────────────────────────────────────────────────
   async function loadRecentAlerts() {

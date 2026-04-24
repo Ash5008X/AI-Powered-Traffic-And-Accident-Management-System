@@ -1,7 +1,9 @@
+/* Global background color override */
 html, body {
   background-color: var(--bg) !important;
 }
 
+/* Root variable definitions for the design system */
 :root {
   --bg: #000000;
   --surface: #141417;
@@ -48,24 +50,28 @@ html, body {
   --teal: #63d4cc;
 }
 
+/* Reset box-sizing to border-box for all elements */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+/* Base styles for html and body */
 html,
 body {
   margin: 0;
   min-height: 100%;
 }
 
+/* Typography and background for the body */
 body {
   background: var(--bg);
   color: var(--txt-main);
   font-family: "Figtree", sans-serif;
 }
 
+/* Shell container that centers the auth content */
 .auth-shell {
   min-height: 100vh;
   display: grid;
@@ -73,16 +79,19 @@ body {
   padding: 16px 20px;
 }
 
+/* Restricted width card for the login/register content */
 .auth-card {
   width: 100%;
   max-width: 560px;
 }
 
+/* Branding block containing logo and titles */
 .brand-block {
   text-align: center;
   margin-bottom: 16px;
 }
 
+/* Main icon used in the branding */
 .brand-icon {
   font-size: 42px;
   line-height: 1;
@@ -90,6 +99,7 @@ body {
   margin-bottom: 6px;
 }
 
+/* Main title styling for the brand */
 .brand-block h1 {
   margin: 0;
   color: var(--teal);
@@ -99,6 +109,7 @@ body {
   line-height: 1;
 }
 
+/* Description text styling under the brand title */
 .brand-block p {
   margin: 7px 0 0;
   color: #6f8bac;
@@ -106,24 +117,28 @@ body {
   font-weight: 500;
 }
 
+/* Layout for the authentication form */
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* Grid system for two-column layouts in the form */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
+/* Container for input fields and labels */
 .field-wrap {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
+/* Label styling for form fields and legends for group fieldsets */
 .field-wrap label,
 .role-group legend {
   color: var(--txt-label);
@@ -134,6 +149,7 @@ body {
   line-height: 1.1;
 }
 
+/* Base styling for all input and select elements */
 input,
 select {
   width: 100%;
@@ -149,6 +165,7 @@ select {
   outline: none;
 }
 
+/* Custom styling for select dropdowns */
 select {
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, #75a0c8 50%), linear-gradient(135deg, #75a0c8 50%, transparent 50%);
@@ -158,23 +175,28 @@ select {
   padding-right: 30px;
 }
 
+/* Placeholder text color for inputs */
 input::placeholder {
   color: #6f88a8;
 }
 
+/* Input and select focus state styling */
 input:focus,
 select:focus {
   border-color: #2f5c88;
 }
 
+/* Wrapper for inputs that have an inline action button (like show/hide password) */
 .input-with-action {
   position: relative;
 }
 
+/* Add padding to input when it contains an inline action */
 .input-with-action input {
   padding-right: 100px;
 }
 
+/* Inline action button styling (e.g., visibility toggle) */
 .inline-action {
   position: absolute;
   right: 10px;
@@ -192,16 +214,19 @@ select:focus {
   cursor: pointer;
 }
 
+/* Icon styling inside inline actions */
 .inline-action .material-symbols-outlined {
   font-size: 14px;
 }
 
+/* Reset for the role selection fieldset */
 .role-group {
   margin: 0;
   padding: 0;
   border: 0;
 }
 
+/* Layout for role selection radio options */
 .role-options {
   margin-top: 6px;
   display: grid;
@@ -209,6 +234,7 @@ select:focus {
   gap: 6px;
 }
 
+/* Visual wrapper for role radio buttons */
 .role-option {
   position: relative;
   height: 36px;
@@ -226,22 +252,26 @@ select:focus {
   cursor: pointer;
 }
 
+/* Hide the actual radio input element */
 .role-option input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
+/* Icon styling inside role options */
 .role-option .material-symbols-outlined {
   font-size: 13px;
 }
 
+/* Active/selected state for role options */
 .role-option.active {
   background: #112e41;
   border-color: #4db8b2;
   color: var(--teal);
 }
 
+/* Primary action button styling */
 .primary-btn {
   margin-top: 2px;
   height: 40px;
@@ -257,6 +287,7 @@ select:focus {
   cursor: pointer;
 }
 
+/* Secondary copy for switching back to the login page */
 .switch-copy {
   margin: 4px 0 0;
   text-align: center;
@@ -265,53 +296,66 @@ select:focus {
   font-weight: 500;
 }
 
+/* Link styling inside switch copy */
 .switch-copy a {
   color: var(--teal);
   text-decoration: none;
   font-weight: 700;
 }
 
+/* Responsive adjustments for mobile devices */
 @media (max-width: 768px) {
+  /* Reduce padding on mobile */
   .auth-shell {
     padding: 20px 12px;
   }
 
+  /* Full width card on mobile */
   .auth-card {
     max-width: 100%;
   }
 
+  /* Reduce spacing on mobile */
   .brand-block {
     margin-bottom: 14px;
   }
 
+  /* Scale down brand icon size */
   .brand-icon {
     font-size: 34px;
   }
 
+  /* Scale down brand title size */
   .brand-block h1 {
     font-size: 40px;
   }
 
+  /* Scale down brand subtitle size */
   .brand-block p {
     font-size: 17px;
   }
 
+  /* Stack grid columns on mobile */
   .grid-2 {
     grid-template-columns: 1fr;
     gap: 8px;
   }
 
+  /* Scale up input size for mobile touch targets */
   input,
   select {
     height: 44px;
     font-size: 14px;
   }
 
+  /* Stack role options on mobile */
   .role-options {
     grid-template-columns: 1fr;
   }
 
+  /* Adjust height for role options on mobile */
   .role-option {
     height: 42px;
   }
 }
+

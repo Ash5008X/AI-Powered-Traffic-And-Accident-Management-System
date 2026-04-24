@@ -1,12 +1,17 @@
+// Wait for the DOM content to be fully loaded before initializing the user reports logic
 document.addEventListener('DOMContentLoaded', () => {
-  // DOM Elements
+  // --- DOM Element Selection ---
+  // Statistic counter elements
   const statTotal = document.getElementById('stat-total');
   const statActive = document.getElementById('stat-active');
   const statResolved = document.getElementById('stat-resolved');
+  
+  // Containers for rendering dynamic report lists
   const activeReportsCount = document.getElementById('active-reports-count');
   const activeReportsList = document.getElementById('active-reports-list');
   const pastReportsList = document.getElementById('past-reports-list');
 
+  // Detail panel elements for showing single report data
   const reportDetailEmpty = document.getElementById('report-detail-empty');
   const reportDetailPanel = document.getElementById('report-detail-panel');
   const detailTicketId = document.getElementById('detail-ticket-id');
@@ -17,7 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailDesc = document.getElementById('detail-desc');
   const detailCloseBtn = document.getElementById('detail-close-btn');
 
-  // Helpers
+  // --- Helper Functions ---
+
+  /**
+   * Retrieves the authentication token from local storage.
+   * @returns {string|null} The token or null if missing.
+   */
   const getToken = () => {
     try {
       return JSON.parse(localStorage.getItem('nexustraffic_auth'))?.token;
@@ -26,12 +36,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  /**
+   * Formats a date string into a structured 'YYYY-MM-DD · HH:MM:SS UTC' format.
+   * @param {string} dateStr - The ISO date string.
+   * @returns {string} Formatted date/time.
+   */
   const formatDate = (dateStr) => {
     if (!dateStr) return '---';
     const date = new Date(dateStr);
     return `${date.toISOString().split('T')[0]} · ${date.toISOString().split('T')[1].substring(0, 8)} UTC`;
   };
 
+  /**
+   * Returns a CSS class name based on incident severity.
+   * @param {string} severity - Incident severity level.
+   * @returns {string} CSS class name.
+   */
   const getSeverityClass = (severity) => {
     switch (severity?.toLowerCase()) {
       case 'critical': return 'critical';
@@ -42,6 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  /**
+   * Returns a CSS class name based on the current report status.
+   * @param {string} status - Report operational status.
+   * @returns {string} CSS class name.
+   */
   const getStatusClass = (status) => {
     switch (status?.toLowerCase()) {
       case 'pending': return 'pending';
@@ -53,10 +78,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // State variable to hold the full list of user's reports
   let allReports = [];
 
+  // --- Main Data Loading Logic ---
+
+  /**
+   * Fetches all reports submitted by the current user and updates the dashboard UI.
+   */
   const loadReports = async () => {
     try {
+      // API call to fetch personal reports
       const res = await fetch('/api/incidents?reportedBy=me', {
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
@@ -64,34 +96,42 @@ document.addEventListener('DOMContentLoaded', () => {
       
       allReports = await res.json();
       
-      // Sort newest first
+      // Sort reports by creation date (newest first)
       allReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
+      // Categorize reports into active and past categories
       const activeReports = allReports.filter(r => ['pending', 'assigned', 'en_route'].includes(r.status));
       const pastReports = allReports.filter(r => ['resolved', 'dismissed'].includes(r.status));
       const resolvedReports = pastReports.filter(r => r.status === 'resolved');
 
-      // Update Stats
+      // Update UI statistic counters with padded strings
       statTotal.textContent = allReports.length.toString().padStart(2, '0');
       statActive.textContent = activeReports.length.toString().padStart(2, '0');
       statResolved.textContent = resolvedReports.length.toString().padStart(2, '0');
       activeReportsCount.textContent = activeReports.length.toString();
 
-      // Render Lists
+      // Render the categorized lists into the DOM
       renderActiveReports(activeReports);
       renderPastReports(pastReports);
 
     } catch (err) {
       console.error('Error loading reports:', err);
+      // Display error messages in the lists if fetch fails
       activeReportsList.innerHTML = `<div style="color: var(--critical);">Failed to load active reports.</div>`;
       pastReportsList.innerHTML = `<div style="color: var(--critical);">Failed to load past reports.</div>`;
     }
   };
 
+  /**
+   * Populates the detail panel with information from a specific report.
+   * @param {Object} report - The report object to display.
+   */
   const showReportDetail = (report) => {
+    // Switch visibility from empty state to the detail panel
     reportDetailEmpty.style.display = 'none';
     reportDetailPanel.style.display = 'block';
 
+    // Update textual details in the panel
     detailTicketId.textContent = `TICKET_ID // ${report.incidentId || '---'}`;
     detailTitle.textContent = `${report.type} — ${report.location?.address || 'Unknown Location'}`;
     detailCoords.textContent = `GEO_LOC // ${report.location?.lat || 0}° N, ${report.location?.lng || 0}° W`;
@@ -101,11 +141,16 @@ document.addEventListener('DOMContentLoaded', () => {
     detailDesc.textContent = report.description || 'No description provided.';
   };
 
+  // Close the detail panel and return to the empty state
   detailCloseBtn.addEventListener('click', () => {
     reportDetailPanel.style.display = 'none';
     reportDetailEmpty.style.display = 'flex';
   });
 
+  /**
+   * Renders active reports with full progress tracking visualizers.
+   * @param {Array} reports - The list of active report objects.
+   */
   const renderActiveReports = (reports) => {
     if (reports.length === 0) {
       activeReportsList.innerHTML = `<div style="opacity: 0.5; padding: 20px 0;">No active reports found.</div>`;
@@ -117,11 +162,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const statClass = getStatusClass(report.status);
       const statLabel = (report.status || 'pending').replace('_', ' ').toUpperCase();
       
+      // Determine the current step index in the 4-stage operational process
       const steps = ['pending', 'assigned', 'en_route', 'resolved'];
       let currentStepIdx = steps.indexOf(report.status);
       if (currentStepIdx === -1) currentStepIdx = 0;
 
-      // Build Progress Row
+      // Build the progress timeline visualization
       let progressRowHtml = '<div class="progress-row">';
       const stepLabels = ['Reported', "Ack'd", 'En Route', 'Resolved'];
       const stepIcons = ['check', 'check', 'local_shipping', 'task_alt'];
@@ -144,12 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
         
+        // Add connector line between steps
         if (i < 3) {
           progressRowHtml += `<div class="prog-line ${lineStatus}"></div>`;
         }
       }
       progressRowHtml += '</div>';
 
+      // Construct the card HTML
       return `
         <div class="card report-card ${sevClass}" style="margin-bottom: 12px; cursor: pointer;" data-id="${report._id}">
           <div class="report-card-top">
@@ -169,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     activeReportsList.innerHTML = html;
 
-    // Attach click events
+    // Attach click events to each card for detailing
     activeReportsList.querySelectorAll('.report-card').forEach(el => {
       el.addEventListener('click', () => {
         const id = el.getAttribute('data-id');
@@ -179,6 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  /**
+   * Renders resolved or dismissed reports as compact table rows.
+   * @param {Array} reports - The list of past report objects.
+   */
   const renderPastReports = (reports) => {
     if (reports.length === 0) {
       pastReportsList.innerHTML = `<div style="opacity: 0.5; padding: 20px;">No past reports found.</div>`;
@@ -203,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     pastReportsList.innerHTML = html;
 
-    // Attach click events
+    // Attach click events to each row for detailing
     pastReportsList.querySelectorAll('.past-row').forEach(el => {
       el.addEventListener('click', () => {
         const id = el.getAttribute('data-id');
@@ -213,5 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  // Trigger initial report loading
   loadReports();
 });
+

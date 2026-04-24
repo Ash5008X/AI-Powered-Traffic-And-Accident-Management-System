@@ -1,14 +1,33 @@
 /**
  * active_incident.js
+ * 
+ * FIELD OPERATIONS REGISTRY
+ * This module specializes in the granular tracking and management of active deployments.
+ * It provides a focused view of incident-to-unit assignments, response timing, 
+ * and real-time tactical status across the relief center's jurisdiction.
+ * 
+ * CORE FUNCTIONALITIES:
+ * - Proactive Monitoring: High-visibility queue of ongoing incidents.
+ * - Deployment Status: Live tracking of field units (Available, En Route, On Site).
+ * - Performance Analytics: Real-time calculation of response ETAs and resolution rates.
+ * - Geospatial Context: Dedicated tactical map with zone-specific operational overlays.
  */
 (() => {
+  // --- Network Infrastructure ---
   const API_BASE = window.NEXUS_API_BASE || 'http://localhost:5000/api';
   const AUTH_KEY = 'nexustraffic_auth';
 
+  /**
+   * --- Authentication Interface ---
+   * Safely retrieves the current session bearer token.
+   */
   function getToken() {
     try { return JSON.parse(localStorage.getItem(AUTH_KEY))?.token; } catch { return null; }
   }
 
+  /**
+   * Standardized API dispatcher with integrated authorization headers.
+   */
   async function apiFetch(path, opts = {}) {
     const token = getToken();
     const res = await fetch(`${API_BASE}${path}`, {
@@ -23,6 +42,10 @@
     return res.json();
   }
 
+  /**
+   * --- Synchronization Clock ---
+   * Synchronizes UTC mission time across the operational interface.
+   */
   function startClock() {
     const el = document.getElementById('clock');
     if (!el) return;
@@ -35,16 +58,25 @@
     setInterval(tick, 1000);
   }
 
+  /**
+   * Formats ISO timestamps into mission-standard 24h format.
+   */
   function formatTime(dateStr) {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
 
+  /**
+   * Maps internal severity keys to standardized design system hex codes.
+   */
   function severityColor(sev) {
     return { critical: '#FF3B30', high: '#FF6B35', medium: '#FFB830', low: '#34C759' }[sev] || '#888';
   }
 
+  /**
+   * Calculates the elapsed time since incident inception for priority tracking.
+   */
   function formatETA(createdAt) {
     const start = new Date(createdAt);
     const diff = Math.max(0, Math.floor((Date.now() - start) / 1000));
@@ -52,7 +84,10 @@
     return `${m} MIN`;
   }
 
-  // ─── Leaflet Map ────────────────────────────────────────────────────────────
+  /**
+   * --- Geospatial Situational Awareness ---
+   * Orchestrates the Leaflet.js tactical map with jurisdiction-wide incident overlays.
+   */
   let mapInitialized = false;
   function initMap(centerLat, centerLng) {
     if (mapInitialized) return;
@@ -61,6 +96,7 @@
     const mapDiv = document.getElementById('leaflet-map-container');
     if (!mapDiv) return;
 
+    // Async dependency management for Leaflet infrastructure
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css';
@@ -79,7 +115,7 @@
 
     loadLeaflet().then(() => {
       const L = window.L;
-      // Made zoomable and scrollable as per instructions
+      // Initialize map instance with tactical zoom/scroll capabilities
       const map = L.map('leaflet-map', {
         center: [centerLat, centerLng],
         zoom: 13,
@@ -91,18 +127,19 @@
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-      // 50km radius circle
+      // --- Operational Jurisdiction Overlay (50km) ---
       L.circle([centerLat, centerLng], {
         radius: 50000,
         color: '#F97316', weight: 2,
         fill: true, fillColor: '#F97316', fillOpacity: 0.07
       }).addTo(map);
 
+      // Node Identity Marker
       L.circleMarker([centerLat, centerLng], {
         radius: 6, color: '#F97316', fillColor: '#F97316', fillOpacity: 1
       }).addTo(map);
 
-      // 6 zone sector lines
+      // --- Radial Sector Overlay (Zones A-F) ---
       const ZONE_COLORS_MAP = ['#FF3B30','#FFB830','#F97316','#3A86FF','#34C759','#AF52DE'];
       const ZONE_LABELS = ['A','B','C','D','E','F'];
       const LAT_DEG = 50 / 111.32;
@@ -113,10 +150,12 @@
         const endLat = centerLat + LAT_DEG * Math.cos(bearing * Math.PI / 180);
         const endLng = centerLng + LNG_DEG * Math.sin(bearing * Math.PI / 180);
 
+        // Tactical sector boundary lines
         L.polyline([[centerLat, centerLng], [endLat, endLng]], {
           color: ZONE_COLORS_MAP[i], weight: 1, opacity: 0.5, dashArray: '4 4'
         }).addTo(map);
 
+        // Visual zone identity labels
         const midBearing = bearing + 30;
         const midLat = centerLat + LAT_DEG * 0.55 * Math.cos(midBearing * Math.PI / 180);
         const midLng = centerLng + LNG_DEG * 0.55 * Math.sin(midBearing * Math.PI / 180);
@@ -134,11 +173,16 @@
     });
   }
 
-  // ─── State ───────────────────────────────────────────────────────────────────
+  /**
+   * --- Application State Registry ---
+   */
   let allActiveIncidents = [];
   let incidentMarkers = [];
 
-  // ─── Render Incidents ─────────────────────────────────────────────────────────
+  /**
+   * --- Primary Registry Interface ---
+   * Populates the left-column registry with high-visibility deployment cards.
+   */
   function renderActiveIncidents() {
     const container = document.getElementById('active-incidents-container');
     if (!container) return;
@@ -149,6 +193,7 @@
       return;
     }
 
+    // Map active mission data to tactical cards
     allActiveIncidents.forEach(inc => {
       const color = severityColor(inc.severity);
       const sev = (inc.severity || 'low').toUpperCase();
@@ -172,12 +217,15 @@
     });
   }
 
+  /**
+   * Synchronizes geographical markers with the active incident registry.
+   */
   function updateMapMarkers() {
     if (!window.leafletMap || !window.L) return;
     const L = window.L;
     const map = window.leafletMap;
 
-    // Clear old markers
+    // Reset legacy markers
     incidentMarkers.forEach(m => map.removeLayer(m));
     incidentMarkers = [];
 
@@ -195,6 +243,7 @@
         weight: 2
       }).addTo(map);
 
+      // Detailed tooltips for rapid situation assessment
       marker.bindTooltip(`${inc.type?.toUpperCase()} [${inc.severity?.toUpperCase()}]`, {
         direction: 'top',
         className: 'nt-map-tooltip'
@@ -204,7 +253,11 @@
     });
   }
 
-  // ─── Render Units ─────────────────────────────────────────────────────────────
+  /**
+   * --- Personnel & Unit Tracking ---
+   * Visualizes the live readiness of tactical response units.
+   * @param {Array} units - Collection of field unit state objects.
+   */
   function renderUnits(units) {
     const container = document.getElementById('unit-status-container');
     if (!container) return;
@@ -221,6 +274,7 @@
       const isOnSite = unit.status === 'on_site';
       
       let badgeHtml = '';
+      // Status-dependent visual identity
       if (isAvailable) {
         badgeHtml = `<span class="text-[8px] font-bold px-1.5 py-0.5 rounded-full" style="background-color: var(--nt-card2); color: var(--nt-dim)">AVAILABLE</span>`;
       } else if (isEnRoute) {
@@ -244,7 +298,10 @@
     });
   }
 
-  // ─── Render Critical Alerts ───────────────────────────────────────────────────
+  /**
+   * --- High-Priority Tactical Registry ---
+   * Isolates and emphasizes mission-critical incidents for rapid intervention.
+   */
   function renderCriticalAlerts(incidents) {
     const container = document.getElementById('critical-alerts-container');
     if (!container) return;
@@ -268,13 +325,16 @@
     });
   }
 
-  // ─── Render Dispatch Log ──────────────────────────────────────────────────────
+  /**
+   * --- Operational History Interface ---
+   * Renders the chronological immutable activity log for deployment transparency.
+   */
   function renderDispatchLog(incidents) {
     const container = document.getElementById('dispatch-log-container');
     if (!container) return;
     container.innerHTML = '';
 
-    // Collect all actions from all active incidents
+    // Aggregate granular actions from the entire jurisdictional registry
     let allActions = [];
     if (incidents && incidents.length > 0) {
       incidents.forEach(inc => {
@@ -289,7 +349,7 @@
       });
     }
 
-    // Sort by timestamp descending
+    // Chronological normalization (Newest First)
     allActions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     if (allActions.length === 0) {
@@ -297,6 +357,7 @@
       return;
     }
 
+    // Limit log view for performance (Top 20 high-fidelity events)
     allActions.slice(0, 20).forEach(act => {
       const tr = document.createElement('tr');
       const timeStr = act.timestamp ? formatTime(act.timestamp) : '—';
@@ -318,31 +379,33 @@
     });
   }
 
-  // ─── Main Load ───────────────────────────────────────────────────────────────
+  /**
+   * --- Operations Sync Orchestrator ---
+   * Primary entry point for total module data synchronization.
+   */
   async function loadData() {
     try {
+      // Synchronize jurisdictional statistics and unit telemetry
       const stats = await apiFetch('/incidents/dashboard-stats');
       allActiveIncidents = stats.activeIncidents || [];
       
-      // Render components
+      // Update primary UI registries
       renderActiveIncidents();
       
-      // Render Map
+      // Update geographical visualizations
       if (stats.centerLat && stats.centerLng) {
         initMap(stats.centerLat, stats.centerLng);
         updateMapMarkers();
       }
       
-      // Render Units
+      // Update personnel status boards
       renderUnits(stats.fieldUnits || []);
       
-      // Render Critical Alerts
+      // Update intelligence modules
       renderCriticalAlerts(allActiveIncidents);
-      
-      // Render Dispatch Log
       renderDispatchLog(allActiveIncidents);
       
-      // Render Metrics
+      // --- Performance Analytics Refresh ---
       const totalUnits = (stats.fieldUnits || []).length;
       const deployedUnits = (stats.fieldUnits || []).filter(u => ['en_route', 'on_site'].includes(u.status)).length;
       
@@ -369,18 +432,23 @@
     }
   }
 
-  // ─── WebSocket Listeners ─────────────────────────────────────────────────────
+  /**
+   * --- WebSocket Integration ---
+   * Binds real-time event listeners for tactical updates.
+   */
   function initSocket() {
     const socket = (window.NexusAuth && typeof window.NexusAuth.initSocket === 'function')
       ? window.NexusAuth.initSocket()
       : null;
 
     if (socket) {
+      // Refresh logic for newly reported field conditions
       socket.on('incident:new', () => {
         console.log('Socket Update: New incident reported.');
         loadData();
       });
 
+      // State synchronization for status transitions
       socket.on('incident:updated', (data) => {
         console.log('Socket Update: Incident updated.', data);
         loadData();
@@ -388,10 +456,18 @@
     }
   }
 
+  /**
+   * --- Module Initialization ---
+   */
   document.addEventListener('DOMContentLoaded', () => {
+    // Start mission clock
     startClock();
+    // Perform initial SITREP load
     loadData();
+    // Engage real-time event bridge
     initSocket();
-    setInterval(loadData, 60000); // Fallback polling
+    // Redundant polling (60s) for eventual consistency in high-noise environments
+    setInterval(loadData, 60000); 
   });
 })();
+

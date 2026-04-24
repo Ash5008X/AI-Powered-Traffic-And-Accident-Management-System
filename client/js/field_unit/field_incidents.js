@@ -1,17 +1,27 @@
+/**
+ * Self-invoking function to encapsulate the field unit incidents registry logic.
+ */
 (() => {
+  // Global configuration
   const authKey = 'nexustraffic_auth';
 
+  /**
+   * Fetches the complete situational awareness data for the incidents page.
+   * Aggregates active assignments, proximal telemetry, history logs, and alerts.
+   */
   async function fetchIncidentsData() {
     try {
+      // Validate authentication
       const authData = JSON.parse(localStorage.getItem(authKey) || 'null');
       if (!authData || !authData.token) return;
 
+      // Fetch consolidated incident data for the field unit
       const res = await fetch('/api/field-units/incidents/data', {
         headers: { 'Authorization': `Bearer ${authData.token}` }
       });
       const data = await res.json();
 
-      // Store globally for modal access
+      // Flat collection of all incidents for quick retrieval by the detail modal
       window.allIncidents = [
         ...(data.activeAssignments || []),
         ...(data.proximalTelemetry || []),
@@ -19,13 +29,15 @@
         ...(data.todayAlerts || [])
       ];
 
+      // Dispatch UI rendering logic
       renderActive(data.activeAssignments);
       renderProximal(data.proximalTelemetry);
       renderHistory(data.historyLog);
       renderStats(data.stats);
       
-      // Store todayAlerts for filtering
+      // Cache alerts for sidebar filtering
       window.todayAlerts = data.todayAlerts;
+      // Apply current filter settings
       applyFilter();
 
     } catch (err) {
@@ -33,18 +45,26 @@
     }
   }
 
+  /**
+   * Populates and displays the high-priority incident detail modal.
+   * @param {string} id - The unique MongoDB ObjectID of the incident.
+   */
   function showDetail(id) {
     const inc = window.allIncidents.find(i => i._id === id);
     if (!inc) return;
 
+    // Update modal identity and severity markers
     document.getElementById('modal-severity').textContent = inc.severity.toUpperCase();
     document.getElementById('modal-severity').className = `critical-badge severity-${inc.severity}`;
     document.getElementById('modal-title').textContent = inc.title;
     document.getElementById('modal-id').textContent = `INCIDENT_ID // ${inc._id.toUpperCase()}`;
     document.getElementById('modal-desc').textContent = inc.description || 'No detailed sitrep available for this tactical engagement.';
+    
+    // Format geographical and temporal data
     document.getElementById('modal-coords').textContent = inc.location ? `${inc.location.lat.toFixed(4)} N, ${inc.location.lng.toFixed(4)} W` : '--';
     document.getElementById('modal-time').textContent = new Date(inc.createdAt).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST';
 
+    // Show modal with smooth entry animation
     const modal = document.getElementById('detail-modal');
     modal.classList.remove('hidden');
     setTimeout(() => {
@@ -53,6 +73,9 @@
     }, 10);
   }
 
+  /**
+   * Hides the incident detail modal with an exit animation.
+   */
   function closeModal() {
     const modal = document.getElementById('detail-modal');
     modal.classList.remove('opacity-100');
@@ -62,33 +85,49 @@
     }, 300);
   }
 
+  // --- Modal Interaction Listeners ---
   document.getElementById('close-modal')?.addEventListener('click', closeModal);
+  // Close on backdrop click
   document.getElementById('detail-modal')?.addEventListener('click', (e) => {
     if (e.target.id === 'detail-modal') closeModal();
   });
+  // Navigate to mission control from modal
   document.getElementById('modal-action-btn')?.addEventListener('click', () => {
     window.location.href = 'field_desktop.html';
   });
 
+  /**
+   * Updates the performance counters in the sidebar duty summary.
+   * @param {Object} stats - Personal activity statistics object.
+   */
   function renderStats(stats) {
     if (!stats) return;
     document.getElementById('stat-assigned').textContent = String(stats.assigned).padStart(2, '0');
     document.getElementById('stat-completed').textContent = String(stats.completedToday).padStart(2, '0');
   }
 
+  /**
+   * Applies the user's selected filtering logic to the sidebar alerts list.
+   */
   function applyFilter() {
     const val = document.getElementById('sort-select').value;
     let filtered = [...(window.todayAlerts || [])];
     
+    // Process filter selection
     if (val === 'critical') {
         filtered = filtered.filter(inc => inc.severity === 'critical');
     } else if (val === 'pending') {
         filtered = filtered.filter(inc => inc.status === 'pending');
     }
     
+    // Refresh the sidebar display
     renderSidebarAlerts(filtered);
   }
 
+  /**
+   * Renders the filtered list of small alert cards in the left sidebar.
+   * @param {Array} incidents - List of alert-worthy incident objects.
+   */
   function renderSidebarAlerts(incidents) {
     const list = document.getElementById('sidebar-alerts-list');
     if (!incidents || incidents.length === 0) {
@@ -96,6 +135,7 @@
         return;
     }
 
+    // Build sidebar alert elements
     list.innerHTML = incidents.map(inc => `
         <div class="p-2 rounded bg-[var(--nt-card2)] border border-[var(--nt-nav-border)] hover:border-[#F97316] transition-colors cursor-pointer" 
              onclick="showDetail('${inc._id}')">
@@ -111,8 +151,13 @@
     `).join('');
   }
 
+  // Bind filter change event
   document.getElementById('sort-select').addEventListener('change', applyFilter);
 
+  /**
+   * Renders the primary list of active mission assignments in the center feed.
+   * @param {Array} incidents - List of currently assigned active incident objects.
+   */
   function renderActive(incidents) {
     const list = document.getElementById('active-list');
     if (!incidents || incidents.length === 0) {
@@ -120,6 +165,7 @@
       return;
     }
 
+    // Map active assignments to UI cards
     list.innerHTML = incidents.map(inc => `
       <div class="incident-card ${inc.severity === 'critical' ? 'crit' : 'high'}" onclick="showDetail('${inc._id}')">
         <div class="incident-card-top">
@@ -140,6 +186,10 @@
     `).join('');
   }
 
+  /**
+   * Renders a 2x2 grid of incidents reported near the current unit's operating zone.
+   * @param {Array} incidents - List of proximal incident objects.
+   */
   function renderProximal(incidents) {
     const grid = document.getElementById('proximal-grid');
     if (!incidents || incidents.length === 0) {
@@ -147,10 +197,11 @@
       return;
     }
 
-    // Always ensure 4 slots (pad with empty if needed)
+    // Always ensure 4 slots are managed in the grid
     const displayItems = incidents.slice(0, 4);
     while (displayItems.length < 4) displayItems.push(null);
 
+    // Build proximal grid elements
     grid.innerHTML = displayItems.map(inc => {
       if (!inc) return `<div class="proximal-card" style="opacity:0.1; height:80px"></div>`;
       return `
@@ -166,6 +217,10 @@
     }).join('');
   }
 
+  /**
+   * Renders the historical log of recently resolved incidents.
+   * @param {Array} incidents - List of historical mission objects.
+   */
   function renderHistory(incidents) {
     const list = document.getElementById('history-list');
     if (!incidents || incidents.length === 0) {
@@ -173,6 +228,7 @@
       return;
     }
 
+    // Build historical row elements
     list.innerHTML = incidents.map(inc => `
       <div class="history-row" style="opacity: ${inc.status === 'resolved' ? '0.55' : '0.9'}; cursor:pointer" onclick="showDetail('${inc._id}')">
         <div class="history-row-left">
@@ -192,6 +248,11 @@
     `).join('');
   }
 
+  // --- Page Lifecycle ---
+
+  // Perform initial data sync
   fetchIncidentsData();
+  // Continuous polling every 15 seconds to ensure operational currency
   setInterval(fetchIncidentsData, 15000);
 })();
+

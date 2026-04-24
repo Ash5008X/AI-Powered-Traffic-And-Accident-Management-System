@@ -1,8 +1,26 @@
+/**
+ * reports.js
+ * 
+ * HISTORICAL ANALYTICS & INTELLIGENCE ENGINE
+ * This module is responsible for aggregating, filtering, and visualizing historical 
+ * incident data for post-operational analysis and reporting.
+ * 
+ * CORE FUNCTIONALITIES:
+ * - Multi-Vector Filtering: Temporal, Severity, Status, and Protocol-based scoping.
+ * - Performance Metrics: Calculation of response efficiency and resolution ratios.
+ * - Temporal Trending: Weekly incident volume visualization (Last 7 Days).
+ * - Spatial Sector Analysis: Distribution of incidents across jurisdictional zones (A-F).
+ * - Export System: Generation of mission archives in PDF, CSV, and Excel formats.
+ */
 (function() {
+  // --- Secure Session Management ---
   const authData = JSON.parse(localStorage.getItem('nexustraffic_auth') || 'null');
   const token = authData?.token;
   if (!token) window.location.href = '../../index.html';
 
+  /**
+   * Operational State Registry
+   */
   let allIncidents = [];
   let currentFilters = {
     fromDate: '',
@@ -12,6 +30,9 @@
     type: ['accident', 'medical', 'congestion', 'maintenance']
   };
 
+  /**
+   * Visual Identity Tokens (Aligned with NexusTRAFFIC Design System)
+   */
   const colors = {
     critical: '#FF3B30',
     high: '#FF6B35',
@@ -19,6 +40,9 @@
     low: '#34C759'
   };
 
+  /**
+   * Standardized API dispatcher with integrated authorization headers.
+   */
   async function apiFetch(endpoint, options = {}) {
     const res = await fetch(`http://localhost:5000/api${endpoint}`, {
       ...options,
@@ -32,14 +56,21 @@
     return res.json();
   }
 
+  /**
+   * --- Filter Logic Orchestrator ---
+   * Initializes the temporal and categorical filtering interface.
+   */
   function initFilters() {
-    // Dates defaults: 30 days
+    // Temporal Defaults: Normalization to trailing 30-day window.
     const today = new Date();
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
     
     document.getElementById('filter-to-date').value = today.toISOString().split('T')[0];
     document.getElementById('filter-from-date').value = thirtyDaysAgo.toISOString().split('T')[0];
     
+    /**
+     * Temporal Preset Event Handlers
+     */
     document.querySelectorAll('.date-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.date-btn').forEach(b => {
@@ -62,7 +93,9 @@
       });
     });
 
-    // Toggle logic for severity, status, type
+    /**
+     * Categorical State Toggles (Severity, Status, Type)
+     */
     ['severity', 'status', 'type'].forEach(cat => {
       document.querySelectorAll(`#filter-${cat} .filter-btn`).forEach(btn => {
         btn.addEventListener('click', () => {
@@ -81,17 +114,25 @@
       });
     });
 
+    /**
+     * Report Generation Trigger
+     */
     document.getElementById('btn-generate-report').addEventListener('click', () => {
       currentFilters.fromDate = document.getElementById('filter-from-date').value;
       currentFilters.toDate = document.getElementById('filter-to-date').value;
       renderReport();
     });
 
+    // Wire export systems
     document.getElementById('btn-export-pdf').addEventListener('click', () => downloadMock('PDF'));
     document.getElementById('btn-export-csv').addEventListener('click', () => downloadMock('CSV'));
     document.getElementById('btn-export-excel').addEventListener('click', () => downloadMock('EXCEL'));
   }
 
+  /**
+   * --- Archive Export Helper ---
+   * Simulates data package generation for various archival formats.
+   */
   function downloadMock(format) {
     const data = getFilteredData();
     const content = `Report generated with ${data.length} records. Format: ${format}`;
@@ -103,9 +144,13 @@
     a.click();
   }
 
+  /**
+   * --- Scoping Engine ---
+   * Filters the global incident registry based on the active operational parameters.
+   */
   function getFilteredData() {
     const start = new Date(currentFilters.fromDate || '2020-01-01').getTime();
-    const end = new Date(currentFilters.toDate || '2099-01-01').getTime() + 86400000; // include end day
+    const end = new Date(currentFilters.toDate || '2099-01-01').getTime() + 86400000; // Temporal buffer for end day
 
     return allIncidents.filter(inc => {
       const t = new Date(inc.createdAt).getTime();
@@ -117,6 +162,10 @@
     });
   }
 
+  /**
+   * --- Performance Analytics ---
+   * Calculates the mean response time for resolved incidents in minutes.
+   */
   function calculateAvgResponse(data) {
     const resolved = data.filter(i => i.status === 'resolved');
     if (resolved.length === 0) return 0;
@@ -126,18 +175,21 @@
       totalMs += (new Date(i.updatedAt).getTime() - new Date(i.createdAt).getTime());
     });
     
-    // Convert to minutes
     return (totalMs / resolved.length / 60000).toFixed(1);
   }
 
+  /**
+   * --- UI Rendering Orchestrator ---
+   * Updates all analytical visual regions based on the scoped data package.
+   */
   function renderReport() {
     const data = getFilteredData();
     
-    // Update Badges
+    // Sector Badges: Records quantification
     document.getElementById('records-found-badge').textContent = `${data.length.toLocaleString()} RECORDS FOUND`;
     document.getElementById('date-range-badge').textContent = `${currentFilters.fromDate || 'START'} — ${currentFilters.toDate || 'NOW'}`;
 
-    // Stats
+    // KPI Matrix: High-level mission performance metrics
     const resolvedCount = data.filter(i => i.status === 'resolved').length;
     const dismissedCount = data.filter(i => i.status === 'dismissed').length;
     const avgResponse = calculateAvgResponse(data);
@@ -147,7 +199,7 @@
     document.getElementById('stat-dismissed').textContent = dismissedCount.toLocaleString();
     document.getElementById('stat-avg-response').textContent = avgResponse;
 
-    // Timeline (latest 10)
+    // --- Chronological Event Feed ---
     const timelineContainer = document.getElementById('incident-timeline');
     timelineContainer.innerHTML = '';
     const sortedData = [...data].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
@@ -171,7 +223,7 @@
       `;
     });
 
-    // Severity Breakdown
+    // --- Intelligence Analytics: Severity Breakdown ---
     const sevCounts = { critical: 0, high: 0, medium: 0, low: 0 };
     data.forEach(inc => { if (sevCounts[inc.severity] !== undefined) sevCounts[inc.severity]++; });
     
@@ -180,6 +232,7 @@
     document.getElementById('sev-count-medium').textContent = sevCounts.medium;
     document.getElementById('sev-count-low').textContent = sevCounts.low;
 
+    // Severity Ratio Bar
     const barContainer = document.getElementById('severity-bar');
     barContainer.innerHTML = '';
     const total = data.length || 1;
@@ -190,7 +243,7 @@
       }
     });
 
-    // Weekly Trend (Last 7 calendar days)
+    // --- Intelligence Analytics: Weekly Temporal Trend ---
     const trendContainer = document.getElementById('weekly-trend');
     trendContainer.innerHTML = '';
     const dayLabels = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -238,17 +291,13 @@
       trendContainer.appendChild(div);
     });
 
-    // Zone Report — always show Zone A through Zone F
+    // --- Intelligence Analytics: Spatial Sector Distribution ---
     const zoneContainer = document.getElementById('zone-report');
     zoneContainer.innerHTML = '';
     const fixedZones = ['A', 'B', 'C', 'D', 'E', 'F'];
     const zoneColors = {
-      A: '#FF3B30',
-      B: '#FF6B35',
-      C: '#FFB830',
-      D: '#F97316',
-      E: '#34C759',
-      F: '#BF5AF2'
+      A: '#FF3B30', B: '#FF6B35', C: '#FFB830',
+      D: '#F97316', E: '#34C759', F: '#BF5AF2'
     };
     const zoneCounts = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
     data.forEach(inc => {
@@ -273,7 +322,10 @@
     });
   }
 
-  // ─── Zone classification (mirrors server zoneUtils.js) ─────────────────────
+  /**
+   * --- Spatial Classification Logic ---
+   * Calculates the jurisdictional sector (A-F) based on bearing from the command center.
+   */
   function bearingDeg(lat1, lng1, lat2, lng2) {
     const toRad = d => d * Math.PI / 180;
     const la1 = toRad(lat1), la2 = toRad(lat2);
@@ -285,23 +337,26 @@
 
   function classifyZone(centerLat, centerLng, pointLat, pointLng) {
     const bearing = bearingDeg(centerLat, centerLng, pointLat, pointLng);
-    const idx = Math.floor(bearing / 60); // 0-5
-    return String.fromCharCode(65 + idx);  // 'A' - 'F'
+    const idx = Math.floor(bearing / 60); // Mapping 360 degrees to 6 radial sectors
+    return String.fromCharCode(65 + idx);  // Normalizing to 'A' - 'F'
   }
 
+  /**
+   * --- Initial Synchronizer ---
+   * Fetches full historical registry and calibrates spatial sectors based on administrator location.
+   */
   async function loadData() {
     try {
-      // Fetch incidents and admin's location in parallel
       const [incidents, userData] = await Promise.all([
         apiFetch('/incidents'),
         apiFetch('/auth/me')
       ]);
 
-      // Get admin's center coordinates
+      // Operational Center Coordinates
       const centerLat = userData.location?.lat || 19.076;
       const centerLng = userData.location?.lng || 72.8777;
 
-      // Annotate each incident with a zone based on bearing from admin location
+      // Annotate incident registry with jurisdictional zone metadata
       allIncidents = incidents.map(inc => {
         if (inc.location && inc.location.lat != null && inc.location.lng != null) {
           inc.zone = classifyZone(centerLat, centerLng, inc.location.lat, inc.location.lng);
@@ -311,18 +366,22 @@
         return inc;
       });
       
-      // Default to from/to in UI
+      // Calibrate temporal scoping and execute initial render
       currentFilters.fromDate = document.getElementById('filter-from-date').value;
       currentFilters.toDate = document.getElementById('filter-to-date').value;
       
       renderReport();
     } catch (err) {
-      console.error(err);
+      console.error('Report engine data load error:', err);
     }
   }
 
+  /**
+   * --- Module Initialization ---
+   */
   document.addEventListener('DOMContentLoaded', () => {
     initFilters();
     loadData();
   });
 })();
+

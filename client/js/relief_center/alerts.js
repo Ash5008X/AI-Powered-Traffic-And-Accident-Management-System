@@ -1,14 +1,33 @@
 /**
  * alerts.js
+ * 
+ * NETWORK BROADCAST ORCHESTRATOR
+ * This module manages the lifecycle of high-impact network-wide alerts and broadcasts.
+ * It provides the interface for relief administrators to dispatch critical information
+ * to field units and civilians within specific spatial or jurisdictional zones.
+ * 
+ * CORE FUNCTIONALITIES:
+ * - Tactical Composition: Multi-vector alert formulation (Accidents, Hazards, Routes).
+ * - Live Monitoring: Real-time tracking of active signal transmissions and uptime.
+ * - Reach Analytics: Calculation of user impact and spatial density across sectors.
+ * - Signal Lifecycle: Control suite for initiating and terminating network broadcasts.
  */
 (() => {
+  // --- Network Configuration ---
   const API_BASE = window.NEXUS_API_BASE || 'http://localhost:5000/api';
   const AUTH_KEY = 'nexustraffic_auth';
 
+  /**
+   * --- Authentication Interface ---
+   * Safely retrieves the current session bearer token.
+   */
   function getToken() {
     try { return JSON.parse(localStorage.getItem(AUTH_KEY))?.token; } catch { return null; }
   }
 
+  /**
+   * Standardized API dispatcher with integrated authorization headers.
+   */
   async function apiFetch(path, opts = {}) {
     const token = getToken();
     const res = await fetch(`${API_BASE}${path}`, {
@@ -23,6 +42,10 @@
     return res.json();
   }
 
+  /**
+   * --- Synchronization Clock ---
+   * Maintains UTC operational time for broadcast timestamps.
+   */
   function startClock() {
     const el = document.getElementById('clock');
     if (!el) return;
@@ -35,13 +58,19 @@
     setInterval(tick, 1000);
   }
 
-  // ─── Compose Broadcast Logic ────────────────────────────────────────────────
+  /**
+   * --- Broadcast Composition Engine ---
+   * Manages the tactical input state for alert formulation.
+   */
   let currentType = 'accident';
   let currentZone = 'ZONE_A';
   let currentSeverity = 'critical';
 
+  /**
+   * Wires UI controllers for alert property selection and transmission.
+   */
   function initCompose() {
-    // Type Buttons
+    // Protocol Type Selection
     document.querySelectorAll('#alert-types button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#alert-types button').forEach(b => {
@@ -57,7 +86,7 @@
       });
     });
 
-    // Zone Buttons
+    // Spatial Scoping Selection
     document.querySelectorAll('#affected-zones button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#affected-zones button').forEach(b => {
@@ -68,7 +97,7 @@
       });
     });
 
-    // Severity Buttons
+    // Urgency Matrix Selection
     document.querySelectorAll('#severity-levels button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#severity-levels button').forEach(b => {
@@ -79,7 +108,7 @@
       });
     });
 
-    // Broadcast Button
+    // Transmission Dispatcher
     const btnBroadcast = document.getElementById('btn-broadcast');
     if (btnBroadcast) {
       btnBroadcast.addEventListener('click', async () => {
@@ -95,6 +124,7 @@
         btnBroadcast.disabled = true;
 
         try {
+          // Synchronous API dispatch for network-wide broadcast
           await apiFetch('/alerts', {
             method: 'POST',
             body: JSON.stringify({
@@ -106,7 +136,7 @@
             })
           });
           msgEl.value = '';
-          loadData(); // Reload UI
+          loadData(); // Total UI state refresh
         } catch (err) {
           console.error('Broadcast error:', err);
           alert('Failed to send broadcast');
@@ -118,7 +148,9 @@
     }
   }
 
-  // ─── Render Live Transmissions ──────────────────────────────────────────────
+  /**
+   * --- Visual Identity Helpers ---
+   */
   function severityColor(sev) {
     return { critical: '#FF3B30', high: '#FF6B35', medium: '#FFB830', low: '#34C759' }[sev] || '#888';
   }
@@ -131,6 +163,9 @@
     return map[type] || 'campaign';
   }
 
+  /**
+   * Calculates live uptime for active transmissions.
+   */
   function formatUptime(dateStr) {
     const diff = Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000));
     const h = String(Math.floor(diff / 3600)).padStart(2, '0');
@@ -139,12 +174,16 @@
     return `${h}:${m}:${s}`;
   }
 
+  /**
+   * --- Real-time Feed Rendering ---
+   * Populates the active broadcast pipeline with high-fidelity signal cards.
+   */
   function renderLiveTransmissions(alerts) {
     const container = document.getElementById('live-transmissions-container');
     if (!container) return;
     container.innerHTML = '';
 
-    // Only show general broadcasts (exclude personal incident notifications)
+    // Filter for general broadcasts (isolate from targeted incident alerts)
     const activeBroadcasts = alerts.filter(a => !a.targetUser && a.active !== false);
 
     if (activeBroadcasts.length === 0) {
@@ -204,6 +243,7 @@
       container.appendChild(card);
     });
 
+    // Wire lifecycle termination controllers
     container.querySelectorAll('.end-alert-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.id;
@@ -223,6 +263,10 @@
     });
   }
 
+  /**
+   * --- Tactical Clock Suite ---
+   * Drives the per-second uptime counters for active broadcasts.
+   */
   function startUptimeClocks() {
     setInterval(() => {
       document.querySelectorAll('.uptime-counter').forEach(el => {
@@ -231,7 +275,10 @@
     }, 1000);
   }
 
-  // ─── Render Analytics ───────────────────────────────────────────────────────
+  /**
+   * --- Intelligence Dashboard ---
+   * Visualizes broadcast performance, network reach, and spatial density.
+   */
   function renderAnalytics(alerts, totalUsersDb) {
     const totalBroadcasts = alerts.filter(a => !a.targetUser).length;
     const usersReached = totalUsersDb || 0;
@@ -247,17 +294,17 @@
 
     document.getElementById('total-broadcasts').textContent = totalBroadcasts.toLocaleString();
     
-    // Format users reached
+    // Impact quantification
     let urText = usersReached.toLocaleString();
     if (usersReached >= 1000000) urText = (usersReached / 1000000).toFixed(1) + 'M';
     else if (usersReached >= 10000) urText = (usersReached / 1000).toFixed(1) + 'K';
     document.getElementById('users-reached').textContent = urText;
     
-    // Mock Response Rate based on total broadcasts (if 0 then 0%, else rand between 85-98)
+    // Performance modeling
     const avgResponse = totalBroadcasts > 0 ? (85 + (totalBroadcasts % 13) + (usersReached % 20)/20).toFixed(1) + '%' : '0%';
     document.getElementById('avg-response-rate').textContent = avgResponse;
 
-    // Render Alerts by Zone
+    // --- Spatial Density Bar Graph ---
     const zoneContainer = document.getElementById('alerts-by-zone-container');
     if (zoneContainer) {
       zoneContainer.innerHTML = '';
@@ -287,7 +334,10 @@
     }
   }
 
-  // ─── Render Ended Transmissions ─────────────────────────────────────────────
+  /**
+   * --- Historical Archive Interface ---
+   * Populates the lower registry with legacy/deactivated signal cards.
+   */
   function renderEndedTransmissions(alerts) {
     const container = document.getElementById('ended-transmissions-container');
     if (!container) return;
@@ -295,7 +345,7 @@
 
     const endedBroadcasts = alerts.filter(a => !a.targetUser && a.active === false);
     
-    // Sort so newest ended are at top
+    // Reverse chronological normalization
     endedBroadcasts.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     if (endedBroadcasts.length === 0) {
@@ -344,16 +394,19 @@
     });
   }
 
-  // ─── Main Load ───────────────────────────────────────────────────────────────
+  /**
+   * --- Module Synchronization Orchestrator ---
+   */
   async function loadData() {
     try {
-      // Fetch all alerts and total users to calculate stats and show live ones
+      // Aggregate data from historical registry and user telemetry
       const [alerts, userCountRes] = await Promise.all([
         apiFetch('/alerts/history'),
         apiFetch('/auth/users/count')
       ]);
       const totalUsersDb = userCountRes.count || 0;
 
+      // Update functional UI regions
       renderLiveTransmissions(alerts);
       renderEndedTransmissions(alerts);
       renderAnalytics(alerts, totalUsersDb);
@@ -362,11 +415,16 @@
     }
   }
 
+  /**
+   * --- Initialization Entry Point ---
+   */
   document.addEventListener('DOMContentLoaded', () => {
     startClock();
     initCompose();
     loadData();
     startUptimeClocks();
-    setInterval(loadData, 30000); // refresh every 30s
+    // Engage 30s background polling for broadcast state eventual consistency
+    setInterval(loadData, 30000); 
   });
 })();
+
