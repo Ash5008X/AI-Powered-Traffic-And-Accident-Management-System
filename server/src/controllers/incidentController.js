@@ -2,49 +2,63 @@ const incidentModel = require('../modules/incidentModel');
 const fieldUnitModel = require('../modules/fieldUnitModel');
 const { filterAndAnnotate } = require('../utils/zoneUtils');
 const userModel = require('../modules/userModel');
+const reliefCenterModel = require('../modules/reliefCenterModel');
 
 const incidentController = {
   async create(req, res) {
     try {
       const { haversineKm, classifyZone } = require('../utils/zoneUtils');
-      const db = require('../config/db').getDB();
       
+      // Extract incident details from request body
+      // We prioritize the live location sent from the frontend
+      const { type, severity, location, description, resources } = req.body;
+
+      if (!location || location.lat == null || location.lng == null) {
+        return res.status(400).json({ error: 'Live location (lat, lng) is required to submit a report.' });
+      }
+
       const incidentData = {
-        ...req.body,
+        type,
+        severity,
+        location, // This is the live { lat, lng, address } from the frontend
+        description,
+        resources: resources || [],
         reportedBy: req.user.id
       };
 
-      // Find nearest Relief Center
-      const centers = await db.collection('users').find({ role: 'relief_admin' }).toArray();
+      // Find nearest Relief Center based on the reported live location
+      const centers = await reliefCenterModel.findAll();
       let nearest = null;
       let minDistance = Infinity;
 
-      if (incidentData.location && incidentData.location.lat != null) {
-        centers.forEach(center => {
-          if (center.location) {
-            const dist = haversineKm(center.location.lat, center.location.lng, incidentData.location.lat, incidentData.location.lng);
-            if (dist < minDistance) {
-              minDistance = dist;
-              nearest = center;
-            }
+      centers.forEach(center => {
+        if (center.location) {
+          const dist = haversineKm(center.location.lat, center.location.lng, location.lat, location.lng);
+          if (dist < minDistance) {
+            minDistance = dist;
+            nearest = center;
           }
-        });
-      }
+        }
+      });
 
       if (nearest) {
         incidentData.reliefCenterId = nearest._id;
-        incidentData.zone = classifyZone(nearest.location.lat, nearest.location.lng, incidentData.location.lat, incidentData.location.lng);
+        incidentData.zone = classifyZone(nearest.location.lat, nearest.location.lng, location.lat, location.lng);
       }
 
+      // Save the incident with the captured live location
       const incident = await incidentModel.create(incidentData);
       
+      // Broadcast the new incident via WebSocket for real-time tactical updates
       if (req.app.get('io')) {
         req.app.get('io').emit('incident:new', incident);
       }
+
+      console.log(`[Incident] New report saved with LIVE location: ${location.lat}, ${location.lng}`);
       res.status(201).json(incident);
     } catch (err) {
       console.error('Create incident error:', err);
-      res.status(500).json({ error: 'Server error' });
+      res.status(500).json({ error: 'Server error while saving incident' });
     }
   },
 
@@ -91,7 +105,7 @@ const incidentController = {
 
         // If zone or relief center is missing, try to find nearest one now
         if (!zone || !reliefCenterId) {
-          const centers = await db.collection('users').find({ role: 'relief_admin' }).toArray();
+          const centers = await reliefCenterModel.findAll();
           let nearest = null;
           let minDistance = Infinity;
 
@@ -343,9 +357,20 @@ const incidentController = {
    */
   async dashboardStats(req, res) {
     try {
-      const adminUser = await userModel.findById(req.user.id);
-      if (!adminUser || !adminUser.location) {
-        return res.status(400).json({ error: 'Admin location not set' });
+      let adminUser;
+      if (req.user.role === 'relief_admin') {
+        adminUser = await reliefCenterModel.findById(req.user.id);
+      } else {
+        adminUser = await userModel.findById(req.user.id);
+      }
+
+      if (!adminUser || !adminUser.location || adminUser.location.lat === undefined) {
+        return res.status(400).json({ 
+          error: 'Admin location not set', 
+          needsLocation: true,
+          centerLat: 0, 
+          centerLng: 0 
+        });
       }
 
       const centerLat = adminUser.location.lat;

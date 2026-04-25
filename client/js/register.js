@@ -69,6 +69,29 @@
           role
         };
 
+        // --- Feature: Capture registration location for Field Units ---
+        if (role === 'field_unit') {
+          if (!navigator.geolocation) {
+            throw new Error('Geolocation is not supported by your browser. Required for Field Unit registration.');
+          }
+          
+          setFormMessage(form, 'Capturing location for regional assignment...', false);
+          
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000
+            });
+          }).catch(err => {
+            throw new Error('Location access is required for Field Unit registration. Please enable GPS.');
+          });
+          
+          payload.location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+        }
+
         // Attempt to register using the NexusAuth utility
         const { user } = await window.NexusAuth.register(payload);
         // Redirect the user to their respective dashboard based on their role

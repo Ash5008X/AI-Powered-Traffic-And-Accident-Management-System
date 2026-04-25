@@ -8,12 +8,22 @@ const reliefCenterModel = {
     const db = getDB();
     const doc = {
       name: data.name,
-      location: data.location || { lat: 0, lng: 0 },
+      email: data.email,
+      password: data.password,
+      role: data.role || 'relief_admin',
+      location: data.location || null,
       units: data.units || [],
-      status: 'on_duty'
+      unassignedMembers: data.unassignedMembers || [], // Pre-calculate proximity pool
+      status: 'on_duty',
+      createdAt: new Date()
     };
     const result = await db.collection(COLLECTION).insertOne(doc);
     return { ...doc, _id: result.insertedId };
+  },
+
+  async findByEmail(email) {
+    const db = getDB();
+    return db.collection(COLLECTION).findOne({ email });
   },
 
   async findById(id) {
@@ -44,9 +54,12 @@ const reliefCenterModel = {
     );
   },
 
-  async findByAdminId(adminId) {
+  async updateLocation(id, location) {
     const db = getDB();
-    return db.collection(COLLECTION).findOne({ adminId: new ObjectId(adminId) });
+    return db.collection(COLLECTION).updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { location } }
+    );
   }
 };
 

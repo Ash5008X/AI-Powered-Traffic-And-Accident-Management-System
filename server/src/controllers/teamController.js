@@ -90,20 +90,34 @@ const teamController = {
   async getUnassignedFieldUnits(req, res) {
     try {
       const db = getDB();
-      // Get all teams and collect member IDs
+      const adminId = new ObjectId(req.user.id);
+
+      // Fetch the requesting Relief Admin's operational pool
+      const admin = await db.collection('relief_centers').findOne({ _id: adminId });
+      if (!admin || !admin.unassignedMembers || admin.unassignedMembers.length === 0) {
+        return res.json([]);
+      }
+
+      // Collect all IDs already assigned to teams to ensure we only show truly available units
       const teams = await db.collection('teams').find({}).toArray();
       const assignedIds = new Set();
       teams.forEach(t => {
         (t.members || []).forEach(m => assignedIds.add(m.toString()));
       });
 
-      // Get all field_unit users
-      const fieldUsers = await db.collection('users').find({ role: 'field_unit' }).toArray();
+      // Fetch member details for those in the admin's proximity pool
+      const poolIds = admin.unassignedMembers.map(id => new ObjectId(id));
+      const fieldUsers = await db.collection('members')
+        .find({ 
+          _id: { $in: poolIds },
+          role: 'field_unit' 
+        })
+        .project({ name: 1, email: 1, role: 1 })
+        .toArray();
       
-      // Filter out assigned ones
+      // Final filter: Must be in the 5km pool AND not yet assigned to any tactical team
       const unassigned = fieldUsers
-        .filter(u => !assignedIds.has(u._id.toString()))
-        .map(u => ({ _id: u._id, name: u.name, email: u.email, role: u.role }));
+        .filter(u => !assignedIds.has(u._id.toString()));
 
       res.json(unassigned);
     } catch (err) {
@@ -121,9 +135,10 @@ const teamController = {
       // Populate member details
       let members = [];
       if (team.members && team.members.length > 0) {
-        members = await db.collection('users').find({
-          _id: { $in: team.members.map(id => new ObjectId(id)) }
-        }).project({ password: 0 }).toArray();
+        const memberIds = team.members.map(id => new ObjectId(id));
+        const membersInUsers = await db.collection('users').find({ _id: { $in: memberIds } }).project({ password: 0 }).toArray();
+        const membersInMembers = await db.collection('members').find({ _id: { $in: memberIds } }).project({ password: 0 }).toArray();
+        members = [...membersInUsers, ...membersInMembers];
       }
 
       res.json({ ...team, memberDetails: members });

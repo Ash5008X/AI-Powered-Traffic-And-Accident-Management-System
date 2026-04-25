@@ -166,10 +166,16 @@ const fieldUnitController = {
       }
 
       if (currentMission && currentMission.reportedBy) {
-        const reporter = await db.collection('users').findOne(
-          { _id: new ObjectId(currentMission.reportedBy) },
-          { projection: { location: 1, email: 1 } }
-        );
+        const reporterId = new ObjectId(currentMission.reportedBy);
+        // Search across all collections for the reporter
+        let reporter = await db.collection('users').findOne({ _id: reporterId }, { projection: { location: 1, email: 1, name: 1 } });
+        if (!reporter) {
+          reporter = await db.collection('members').findOne({ _id: reporterId }, { projection: { location: 1, email: 1, name: 1 } });
+        }
+        if (!reporter) {
+          reporter = await db.collection('relief_centers').findOne({ _id: reporterId }, { projection: { location: 1, email: 1, name: 1 } });
+        }
+        
         if (reporter) {
           currentMission.reporter = reporter;
         }
@@ -196,7 +202,11 @@ const fieldUnitController = {
 
         // Distance: 2 * dist(reliefCenter, incident)
         if (inc.reliefCenterId && inc.location) {
-          const center = await db.collection('users').findOne({ _id: inc.reliefCenterId });
+          // Look in relief_centers collection first
+          let center = await db.collection('relief_centers').findOne({ _id: inc.reliefCenterId });
+          if (!center) {
+            center = await db.collection('users').findOne({ _id: inc.reliefCenterId });
+          }
           if (center && center.location) {
             const dist = haversineKm(center.location.lat, center.location.lng, inc.location.lat, inc.location.lng);
             totalDistance += (dist * 2);
@@ -208,10 +218,10 @@ const fieldUnitController = {
         ? Math.round(totalResponseTimeMs / resolvedToday.length / 60000) 
         : 0;
 
-      // Nearby Heatmap (centered on relief admin location as per user request)
-      const adminUser = await db.collection('users').findOne({ email: 'testadmin001@abc.com' });
-      const centerLat = adminUser && adminUser.location ? adminUser.location.lat : unit.location.lat;
-      const centerLng = adminUser && adminUser.location ? adminUser.location.lng : unit.location.lng;
+      // Nearby Heatmap (centered on relief admin location)
+      const adminUser = team ? await db.collection('relief_centers').findOne({ _id: team.adminId }) : null;
+      const centerLat = adminUser && adminUser.location ? adminUser.location.lat : (unit.location ? unit.location.lat : 0);
+      const centerLng = adminUser && adminUser.location ? adminUser.location.lng : (unit.location ? unit.location.lng : 0);
 
       const RADIUS_KM = 15;
       const allActive = await db.collection('incidents').find({ 

@@ -63,7 +63,82 @@
     localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
   }
 
+  let locationWatchId = null;
+
+  function stopLocationTracking() {
+    if (locationWatchId !== null) {
+      navigator.geolocation.clearWatch(locationWatchId);
+      locationWatchId = null;
+      console.log('Location tracking stopped.');
+    }
+  }
+
+  function startLocationTracking() {
+    if (locationWatchId !== null) return;
+    const auth = getAuth();
+    if (!auth?.user) return;
+
+    const userRole = normalizeRole(auth.user.role);
+    // Track both regular users and field units
+    if (userRole !== 'user' && userRole !== 'field_unit') return;
+
+    if (!navigator.geolocation) {
+      console.error('Geolocation not supported');
+      return;
+    }
+
+    // Determine the correct tracking endpoint based on role
+    // Regular users go to /users, Field Units go to /members (as requested)
+    const trackingEndpoint = userRole === 'field_unit' 
+      ? '/members/update-location' 
+      : '/users/update-location';
+
+    locationWatchId = navigator.geolocation.watchPosition(
+      async (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        try {
+          // Send update to the role-specific endpoint
+          await request(trackingEndpoint, {
+            method: 'PATCH',
+            body: JSON.stringify({ location })
+          });
+          
+          // Update local state to keep profile accurate
+          const currentAuth = getAuth();
+          if (currentAuth?.user) {
+            currentAuth.user.location = location;
+            setAuth(currentAuth);
+          }
+          
+          console.log(`[Tracking] ${userRole.toUpperCase()} location updated:`, location);
+        } catch (err) {
+          console.error('Failed to update tracking location:', err);
+        }
+      },
+      (error) => {
+        console.error('Location tracking error:', error);
+        
+        // If acquisition fails but we have a stored location, we keep the previous state
+        // Requirement: Only alert if permission is explicitly denied
+        if (error.code === error.PERMISSION_DENIED) {
+          alert('Location tracking is required for field operations. Please enable location services to ensure your safety and mission coordination.');
+          stopLocationTracking();
+        }
+      },
+      { 
+        enableHighAccuracy: userRole === 'field_unit', // Precise tracking for field units
+        maximumAge: 10000, 
+        timeout: 15000 
+      }
+    );
+    console.log(`Live tracking initiated for ${userRole}. Endpoint: ${trackingEndpoint}`);
+  }
+
   function clearAuth() {
+    stopLocationTracking();
     localStorage.removeItem(AUTH_KEY);
   }
 
@@ -128,6 +203,55 @@
       setAuth({ token: auth.token, user: data });
     }
     return data;
+  }
+
+  async function updateLocation(location) {
+    const data = await request('/auth/update-location', {
+      method: 'PATCH',
+      body: JSON.stringify({ location })
+    });
+    // Update local storage user data
+    const auth = getAuth();
+    if (auth?.user) {
+      auth.user.location = location;
+      setAuth(auth);
+    }
+    return data;
+  }
+
+  async function promptAndSaveLocation() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        return reject(new Error('Geolocation not supported'));
+      }
+
+      const confirmed = confirm('Allow location access to set your relief center location? This is required for tactical coordination.');
+      if (!confirmed) return reject(new Error('User denied location access'));
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const location = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            await updateLocation(location);
+            alert('Location synchronized successfully.');
+            resolve(location);
+            // Refresh page to apply location-based stats
+            window.location.reload();
+          } catch (err) {
+            alert('Failed to save location: ' + err.message);
+            reject(err);
+          }
+        },
+        (error) => {
+          alert('Error acquiring location: ' + error.message);
+          reject(error);
+        },
+        { enableHighAccuracy: true }
+      );
+    });
   }
 
   function wireNavbar(role) {
@@ -219,6 +343,20 @@
         redirectToDashboard(userRole);
         return;
       }
+
+      // Feature: Auto-capture location for relief_admin if missing
+      if (userRole === 'relief_admin' && (!user.location || user.location.lat === null || user.location.lat === 0)) {
+        // Delay slightly to allow page load
+        setTimeout(() => {
+          promptAndSaveLocation().catch(console.error);
+        }, 1000);
+      }
+
+      // Feature: Real-time location tracking for users and field units
+      if (userRole === 'user' || userRole === 'field_unit') {
+        startLocationTracking();
+      }
+
       wireNavbar(userRole);
       
       // Inject user profile name
@@ -475,6 +613,10 @@
     login,
     register,
     me,
+    updateLocation,
+    promptAndSaveLocation,
+    startLocationTracking,
+    stopLocationTracking,
     clearAuth,
     redirectToDashboard,
     normalizeRole,

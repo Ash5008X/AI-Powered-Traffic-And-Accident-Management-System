@@ -334,66 +334,114 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // --- 4. Form Submission Logic ---
-
   /**
    * Handles the submission of a new incident report form.
+   * CAPTURES LIVE LOCATION: Grabs the user's exact coordinates at the moment of submission
+   * to ensure accurate incident placement on the tactical map.
    */
   reportForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Show loading state on the submission button
+    // Show loading state on the submission button to indicate location acquisition is in progress
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<span class="material-symbols-outlined">sync</span> Submitting...';
+    submitBtn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite">sync</span> Acquiring Location...';
     submitBtn.disabled = true;
 
-    // Check if user location is available before submitting
-    if (!USER_LOCATION || (USER_LOCATION.lat === 0 && USER_LOCATION.lng === 0)) {
-      alert('Your location is not configured. Please contact support.');
+    // Check for geolocation support in the browser
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser. Cannot submit report.');
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
       return;
     }
 
-    // Prepare the report payload
-    const data = {
-      type: document.getElementById('report-type').value,
-      severity: document.getElementById('report-severity').value,
-      location: {
-        address: document.getElementById('report-location').value,
-        lat: USER_LOCATION.lat,
-        lng: USER_LOCATION.lng
-      },
-      description: document.getElementById('report-description').value
+    // Step 1: Capture live location at the moment of submission
+    const tryGetLocation = () => {
+      const geoOptions = {
+        enableHighAccuracy: false, // Faster and more reliable on desktops
+        timeout: 15000,            // 15 second timeout
+        maximumAge: 10000          // Accept location up to 10s old
+      };
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // Success: Use live location
+          const liveLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            address: document.getElementById('report-location').value
+          };
+          submitReport(liveLocation);
+        },
+        (error) => {
+          // Error/Timeout: Fallback to stored profile location
+          console.warn('Live location acquisition failed (Code ' + error.code + '). Falling back to profile location.', error);
+          
+          if (USER_LOCATION && USER_LOCATION.lat !== 0) {
+            alert('Using your saved location for this report.');
+            const fallbackLocation = {
+              ...USER_LOCATION,
+              address: document.getElementById('report-location').value
+            };
+            submitReport(fallbackLocation);
+          } else {
+            // No fallback available
+            if (error.code === error.PERMISSION_DENIED) {
+              alert('Location access is required or a saved profile location must be set to submit a report.');
+            } else {
+              alert('Failed to acquire location and no saved location found in your profile.');
+            }
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+          }
+        },
+        geoOptions
+      );
     };
 
-    try {
-      // Send the report creation request to the API
-      const res = await fetch('/api/incidents', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
-        },
-        body: JSON.stringify(data)
-      });
+    /**
+     * Submits the report data to the server
+     * @param {Object} locationObj - The {lat, lng, address} to save
+     */
+    const submitReport = async (locationObj) => {
+      submitBtn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite">sync</span> Submitting Report...';
 
-      if (!res.ok) throw new Error('Failed to submit report');
-      
-      // Close the modal upon successful submission
-      closeModal();
-      
-      // Refresh dashboard data to show the new report
-      await loadUserData();
-      
-    } catch (err) {
-      console.error('Error submitting report:', err);
-      alert('Failed to submit report. Please try again.');
-    } finally {
-      // Restore button state
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
-    }
+      const data = {
+        type: document.getElementById('report-type').value,
+        severity: document.getElementById('report-severity').value,
+        location: locationObj,
+        description: document.getElementById('report-description').value
+      };
+
+      try {
+        const res = await fetch('/api/incidents', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || 'Failed to submit report');
+        }
+        
+        closeModal();
+        await loadUserData();
+        console.log('Incident reported successfully at:', locationObj);
+        
+      } catch (err) {
+        console.error('Error submitting report:', err);
+        alert(`Failed to submit report: ${err.message}`);
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    };
+
+    tryGetLocation();
   });
 
   // --- 5. Real-time Communication (WebSocket) ---

@@ -8,6 +8,7 @@ const alertRoutes = require('./routes/alertRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const fieldUnitRoutes = require('./routes/fieldUnitRoutes');
 const teamRoutes = require('./routes/teamRoutes');
+const memberRoutes = require('./routes/memberRoutes');
 const reliefCenterModel = require('./modules/reliefCenterModel');
 const auth = require('./middleware/auth');
 
@@ -27,6 +28,7 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/field-units', fieldUnitRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/members', memberRoutes);
 
 // Relief center routes
 app.get('/api/relief-centers', auth, async (req, res) => {
@@ -70,6 +72,22 @@ app.patch('/api/users/location', auth, async (req, res) => {
     await userModel.updateLocation(req.user.id, { lat: parseFloat(lat), lng: parseFloat(lng) });
     res.json({ success: true, location: { lat: parseFloat(lat), lng: parseFloat(lng) } });
   } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// FEATURE: Real-time user location update endpoint
+app.patch('/api/users/update-location', auth, async (req, res) => {
+  try {
+    const userModel = require('./modules/userModel');
+    const { location } = req.body;
+    if (!location || location.lat == null || location.lng == null) {
+      return res.status(400).json({ error: 'Location object with lat and lng required' });
+    }
+    await userModel.updateLocation(req.user.id, location);
+    res.json({ success: true, location });
+  } catch (err) {
+    console.error('Update location error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

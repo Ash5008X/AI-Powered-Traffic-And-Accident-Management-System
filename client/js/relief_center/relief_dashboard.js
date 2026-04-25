@@ -569,39 +569,67 @@
 
   /**
    * --- Real-Time Tactical Marker Management ---
-   * Dynamically places and updates incident indicators on the map based on severity.
+   * Dynamically places and updates incident and field unit indicators on the map.
    */
   let incidentMarkers = [];
-  function updateMapMarkers() {
+  let fieldUnitMarkers = {}; // Track field units by ID for real-time movement
+
+  function updateMapMarkers(fieldUnits = []) {
     if (!window.leafletMap || !window.L) return;
     const L = window.L;
     const map = window.leafletMap;
 
-    // Flush legacy tactical markers
+    // 1. Refresh Incident Markers
     incidentMarkers.forEach(m => map.removeLayer(m));
     incidentMarkers = [];
 
-    // Map all active mission coordinates to map markers
     allActiveIncidents.forEach(inc => {
       if (!inc.location?.lat || !inc.location?.lng) return;
       const color = severityColor(inc.severity);
       
       const marker = L.circleMarker([inc.location.lat, inc.location.lng], {
-        radius: 6,
-        color: color,
-        fillColor: color,
-        fillOpacity: 0.8,
-        weight: 2
+        radius: 6, color, fillColor: color, fillOpacity: 0.8, weight: 2
       }).addTo(map);
 
-      // Contextual tooltips for rapid identification
       marker.bindTooltip(`${inc.type?.toUpperCase()} - ${inc.severity.toUpperCase()}`, {
-        direction: 'top',
-        className: 'nt-map-tooltip'
+        direction: 'top', className: 'nt-map-tooltip'
       });
-
       incidentMarkers.push(marker);
     });
+
+    // 2. Refresh Field Unit Markers
+    // We keep existing markers and just update positions if they exist to avoid flickering
+    fieldUnits.forEach(unit => {
+      if (!unit.location?.lat || !unit.location?.lng) return;
+      
+      const pos = [unit.location.lat, unit.location.lng];
+      if (fieldUnitMarkers[unit._id]) {
+        fieldUnitMarkers[unit._id].setLatLng(pos);
+      } else {
+        const marker = L.circleMarker(pos, {
+          radius: 5, color: '#00F0FF', fillColor: '#007AFF', fillOpacity: 1, weight: 2
+        }).addTo(map);
+
+        marker.bindTooltip(`UNIT: ${unit.name?.toUpperCase() || 'AGENT'}`, {
+          direction: 'bottom', className: 'nt-map-tooltip'
+        });
+        fieldUnitMarkers[unit._id] = marker;
+      }
+    });
+  }
+
+  /**
+   * Specifically handles moving a single field unit marker in real-time via WebSocket.
+   */
+  function moveFieldUnitMarker(memberId, location) {
+    if (!window.leafletMap || !window.L) return;
+    const marker = fieldUnitMarkers[memberId];
+    if (marker) {
+      marker.setLatLng([location.lat, location.lng]);
+    } else {
+      // If marker doesn't exist yet, reload the whole set to be safe
+      loadDashboard();
+    }
   }
 
   /**
@@ -613,6 +641,12 @@
       // Synchronize overall dashboard statistics and incidents
       const stats = await apiFetch('/incidents/dashboard-stats');
       allActiveIncidents = stats.activeIncidents || [];
+
+      // Fetch all field units to show on the tactical map
+      let fieldUnits = [];
+      try {
+        fieldUnits = await apiFetch('/members/field-units');
+      } catch (e) { console.warn('Failed to load field units for map', e); }
 
       // Update functional UI components
       renderStats(stats);
@@ -629,8 +663,11 @@
       // Sync geographical visualizations
       if (!mapInitialized) {
         initMap(stats.centerLat, stats.centerLng);
+        // Map will call updateMapMarkers inside initMap, but we need to pass fieldUnits
+        // Wait, I should update updateMapMarkers call in initMap too or just call it here
+        setTimeout(() => updateMapMarkers(fieldUnits), 500); 
       } else {
-        updateMapMarkers();
+        updateMapMarkers(fieldUnits);
       }
 
       // Synchronize footer telemetry
@@ -640,7 +677,6 @@
 
       // Sync recent communication history
       await loadRecentAlerts();
-
     } catch (err) {
       console.error('Dashboard load error:', err);
     }
@@ -732,6 +768,12 @@
            // If it's for the currently open incident, refresh chat log
            loadDashboard(); 
         }
+      });
+
+      // Real-time tracking of Field Unit movement
+      socket.on('field_unit:location_updated', (data) => {
+        console.log('[Tactical] Field Unit moving:', data.memberId);
+        moveFieldUnitMarker(data.memberId, data.location);
       });
     }
   }
